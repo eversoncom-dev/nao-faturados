@@ -1,0 +1,14 @@
+{
+  "name": "nao-faturados-server",
+  "version": "1.0.0",
+  "description": "Backend local do dashboard nao-faturados.html — testa conexão/consultas contra o ERP Benner (SQL Server).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mssql": "^12.7.0"
+  }
+}

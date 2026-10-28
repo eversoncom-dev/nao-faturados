@@ -1,0 +1,327 @@
+Com base na planilha enviada (abas **AÉREO**, **TERRESTRE** e consolidação de **Não Faturados**), segue um prompt completo para utilizar em ferramentas de IA de desenvolvimento (ChatGPT, Claude, Cursor, Windsurf, Lovable, Bolt, Replit AI, etc.) para gerar um sistema de BI operacional e gerencial profissional.
+
+DESENVOLVA UM SISTEMA WEB DE BUSINESS INTELLIGENCE (BI) PARA GESTÃO DE VENDAS NÃO FATURADAS DO SETOR DE TURISMO CORPORATIVO, COM PADRÃO VISUAL EXECUTIVO E FINANCEIRO.
+
+OBJETIVO:
+Criar um portal web responsivo, moderno e profissional para acompanhamento operacional e gerencial de vendas não faturadas, integrando dados do ERP Benner através de conexão direta com banco de dados SQL.
+
+TECNOLOGIAS SUGERIDAS:
+
+* Frontend: HTML5, CSS3, Bootstrap 5, JavaScript, Chart.js, DataTables
+* Backend: Node.js ou Python
+* Banco de Dados: SQL Server, Oracle ou PostgreSQL
+* Exportação: Excel (.xlsx), CSV e PDF
+* Layout estilo Power BI, Tableau e dashboards financeiros corporativos.
+
+PADRÃO VISUAL:
+
+* Tema corporativo do segmento de turismo e viagens.
+* Layout clean.
+* Cards financeiros.
+* Indicadores em tempo real.
+* Menu lateral recolhível.
+* Modo escuro e claro.
+* Design executivo semelhante a sistemas financeiros ERP.
+
+=================================================
+MENU PRINCIPAL
+==============
+
+1. DASHBOARD EXECUTIVO
+
+Exibir:
+
+* Total de vendas não faturadas
+* Total Aéreo
+* Total Terrestre
+* Quantidade de vendas pendentes
+* Quantidade de vendas suspensas
+* Quantidade de vendas divergentes
+* Quantidade de pré-faturas
+* Quantidade de devoluções
+* Tempo médio de faturamento
+* Última atualização do banco de dados
+
+A última atualização deverá ser exibida automaticamente através da query:
+
+SELECT MAX(DATA_ATUALIZACAO) AS ULTIMA_ATUALIZACAO
+FROM TB_VENDAS
+
+Mostrar:
+"Dados atualizados em DD/MM/AAAA HH:MM"
+
+=================================================
+2. MENU PRODUTO AÉREO
+=====================
+
+Dashboard específico do produto Aéreo contendo:
+
+KPIs:
+
+* Valor total não faturado
+* Quantidade de vendas
+* Valor em pré-fatura
+* Valor pendente
+* Valor devolvido
+* Valor suspenso
+
+Filtros:
+
+* Empresa
+* Cliente
+* Responsável
+* Faturista
+* Sistema de Reserva
+* Data Inclusão
+* Centro de Custo
+* Status
+
+Gráficos:
+
+* Evolução mensal
+* Top 20 clientes
+* Top 20 responsáveis
+* Pendências por faturista
+* Pendências por sistema de reserva
+* Pendências por status
+
+Tabela detalhada:
+
+Campos:
+
+* ID Venda
+* Data Inclusão
+* Cliente
+* Empresa
+* Produto
+* Sistema de Reserva
+* Consultor
+* Faturista
+* Responsável
+* Valor Venda
+* Status
+* Motivo Pendência
+* Observações
+
+Botões:
+
+[Exportar Excel]
+[Exportar PDF]
+[Atualizar Dados]
+
+=================================================
+3. MENU PRODUTO TERRESTRE
+=========================
+
+Mesma estrutura do módulo Aéreo.
+
+KPIs independentes.
+
+Gráficos independentes.
+
+Filtros independentes.
+
+Exportação independente.
+
+=================================================
+4. MENU KPIs
+============
+
+Apresentar indicadores estratégicos:
+
+Financeiro:
+
+* Total não faturado
+* Valor em risco
+* Receita potencial
+* Receita bloqueada
+
+Operacional:
+
+* SLA de faturamento
+* Tempo médio de resolução
+* Backlog de faturamento
+* Índice de divergência
+
+Gestão:
+
+* Ranking de clientes
+* Ranking de faturistas
+* Ranking de responsáveis
+* Ranking de sistemas de reserva
+
+=================================================
+5. MENU VENDAS DIVERGENTES
+==========================
+
+Cadastro manual e automático.
+
+Classificação por:
+
+* Cliente
+* Responsável
+* Faturista
+* Sistema de Reserva
+* Centro de Custo
+* Motivo da Divergência
+
+Status:
+
+* Aberto
+* Em Tratativa
+* Resolvido
+* Cancelado
+
+Fluxo de auditoria completo.
+
+Histórico de alterações.
+
+=================================================
+6. MENU VENDAS SUSPENSAS
+========================
+
+Listar:
+
+* Cliente
+* Responsável
+* Valor
+* Motivo
+* Data da Suspensão
+* Prazo de Regularização
+
+Dashboard próprio.
+
+=================================================
+7. MENU CLIENTES
+================
+
+Ranking financeiro.
+
+Indicadores:
+
+* Volume vendido
+* Volume faturado
+* Volume não faturado
+* SLA médio
+* Pendências
+
+Gráfico de Pareto.
+
+=================================================
+8. MENU RESPONSÁVEIS
+====================
+
+Indicadores individuais:
+
+* Quantidade de vendas
+* Valor total
+* Não faturado
+* Pendências
+* Divergências
+* Suspensões
+
+Ranking por desempenho.
+
+=================================================
+9. MENU FATURISTAS
+==================
+
+Indicadores:
+
+* Volume processado
+* Volume pendente
+* SLA
+* Taxa de retrabalho
+* Divergências
+
+Ranking mensal.
+
+=================================================
+10. MENU SISTEMAS DE RESERVA
+============================
+
+Indicadores por sistema:
+
+* Reserva
+* Emissão
+* Faturamento
+* Pendências
+
+Comparativos entre sistemas.
+
+=================================================
+11. MENU ADMINISTRAÇÃO
+======================
+
+Configuração da conexão ERP Benner.
+
+Tela para cadastro:
+
+Servidor:
+Porta:
+Banco:
+Usuário:
+Senha:
+
+Botão:
+
+[Testar Conexão]
+
+[Salvar Configuração]
+
+=================================================
+QUERY BASE
+==========
+
+Estruturar o BI utilizando dados semelhantes aos identificados nas abas:
+
+* AÉREO
+* TERRESTRE
+* NÃO FATURADOS
+
+Considerar os agrupamentos:
+
+* Cliente
+* Empresa
+* Responsável
+* Faturista
+* Sistema de Reserva
+* Status da Venda
+* Data de Inclusão
+* Tipo de Produto
+
+=================================================
+RECURSOS OBRIGATÓRIOS
+=====================
+
+✓ Dashboard em tempo real
+
+✓ Atualização automática
+
+✓ Exportação Excel
+
+✓ Exportação PDF
+
+✓ Filtros avançados
+
+✓ Drill Down
+
+✓ Responsivo
+
+✓ Controle de acesso por perfil
+
+✓ Auditoria de alterações
+
+✓ Integração ERP Benner
+
+✓ Layout padrão financeiro corporativo
+
+✓ Indicadores separados por Aéreo e Terrestre
+
+✓ Exibição da última atualização do banco
+
+✓ Performance para mais de 500.000 registros
+
+✓ Estrutura preparada para Power BI Embedded no futuro
+
+Esse prompt já está estruturado para gerar uma aplicação semelhante a um BI corporativo de faturamento da Voetur/Benner, utilizando a lógica observada nas abas de **Aéreo** e **Terrestre**, incluindo gestão de não faturados, pré-faturas, pendências, suspensões, divergências e acompanhamento por faturista, cliente e responsável.

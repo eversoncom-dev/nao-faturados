@@ -43,7 +43,8 @@ WITH BASE AS (
         ,CASE WHEN vi.TARIFA        > 0 THEN ROUND((acc.TARIFAKANDIR * 100) / vi.TARIFA,        3) ELSE 0 END AS [TAR - PERCENTUAL KANDIR]
         ,CASE WHEN vi.TAXA_EMBARQUE > 0 THEN ROUND((acc.TAXAKANDIR   * 100) / vi.TAXA_EMBARQUE, 3) ELSE 0 END AS [TAX - PERCENTUAL KANDIR]
         ,'0'                                                            AS EXTRAS
-        ,(vi.[TARIFA]+vi.[TAXA_EMBARQUE]+vi.[OUTRAS_TAXAS]+vi.[MARKUP]) AS TOTAL
+        --,(vi.[TARIFA]+vi.[TAXA_EMBARQUE]+vi.[OUTRAS_TAXAS]+vi.[MARKUP]) AS TOTAL
+        ,(ISNULL(vi.[TARIFA], 0) + ISNULL(vi.[TAXA_EMBARQUE], 0) + ISNULL(vi.[OUTRAS_TAXAS], 0) + ISNULL(vi.[MARKUP], 0)) AS TOTAL
         ,vi.[FEE]
         ,vi.REQUISICAO                                                  AS [ITEM OS]
         ,vi.OS
@@ -57,20 +58,20 @@ WITH BASE AS (
         ,vi.[SISTEMA_RESERVA]
         ,VDC.TIPOACCOUNTING
 
-        ,CASE
-            WHEN vi.COD_CLIENTE_ATUAL IN ('1536','7512','7561')                                                                                                                                                                                                                                                                                                                                                                                                                                 THEN 'GUSTAVO DEDE'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('1526')                                                                                                                                                                                                                                                                                                                                                                                                                                               THEN 'GUILHERME MELO'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('107358','20409','1810','103595','1716','1674','1568','1482','11987','7572','1558','1500','107372','107443','1714','1724','1668','1810','103595','1716','1674','1568','1482','11987','7572','1558','1500','107372','107443','1714','24393','1724','1668','1486','183139','160911','7454','1562','28189','1566','7451','7453')                            THEN 'THALES OLIVEIRA'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('7530','9702','1504','1542','1518','1538','1726','1508','3123','7595','1712','7588','1512','1546','7597','1492','1490','7580','1510','7590','7622','123559','7620','7621','1540','3337','1706','1759','1704','280989','1480','1670','1602','9855','7444','7531','7461')                                                                                 THEN 'ALEX PEREIRA'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('20409','1811','1761','1732','1765','301879','255615','1794','2680','12297','2682','1927','2851','2988','9707','11705','2679','461802','461825','461666','460113','461667','461821','461813','1494','7468','473014','446830','288734','460999','473014','2389','1746','151741','186061','7148','2061','7151','1812','474787','7144','2681')             THEN 'RENATO.PEREIRA'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('1748','2015','1922','2683','3133','3605','5029','1524','1718','1718','1742','2882','28942','1758','1720','1722','13917','1678','1769','1698','1684','31458','1682','54','4170','3134','1768','1680','192758','192746','1696','1530')                                                                                                                  THEN 'LUCAS BRENDO'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('1528','7537','1648','1596','1622','941','1588','1590','1608','1628','1652','1618','1604','1640','1650','1632','1662','1710','1656','1488','1478','1598','107434','1516','1584','1522','1642','9743','1620','1809','1548','7471','1700','1868','1612','1644','2300','1582','1660','1666','1694','1592','1606','1594','1634','1610','1646','1484','1554','1616','1676','1474','1658','1586','1614','1702','1624','427703','1352','1626','472725') THEN 'ERNANDES JUNIOR'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('11518','7433','12201','452595','430683','449238','7594','1520','1738','1689','1672','452056')                                                                                                                                                                                                                                                         THEN 'PEDRO HENRIQUE'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('192750','192746','1772','1748','2015','1767','7439','1793','9726','1801','1780','1797','1818','1736','1744','1766','1774','1764','450807','24483','350315200','35031520','584525990','1750','455142','192762','1752','4170','13917','100760','1584','1806','192146','1690','53','449400','13144','449403','1127346','1816','1788','389916','1763','1795','1777','1775','53','7584','169411720','455688','455586','1762','472785','473252','934','473241','473251','1805','1800','1807','1498','1630','473238','473246','449404','5246','456905','473236','475568','487291') THEN 'GILMARA.DINO'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('2487','1630','24527','11599','11920','7152','62389','1894','1944','1820','7468','97375','11776','7153','121770','12274','11720','460086','264241','7211','7150','2487','7146')                                                                                                                                                                         THEN 'FILIPI.SILVA'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('1')                                                                                                                                                                                                                                                                                                                                                  THEN 'EVERSON.COSTA'
-            WHEN vi.COD_CLIENTE_ATUAL IN ('172616','1734','1730','1476','474932','7593')                                                                                                                                                                                                                                                                                                        THEN 'WELTON BRITO'
-            ELSE 'VERIFICAR'
+,CASE WHEN vi.COD_CLIENTE_ATUAL in ('1536','7512','7561') THEN 'GUSTAVO DEDE'
+WHEN vi.COD_CLIENTE_ATUAL in ('1526') THEN 'GUILHERME MELO'
+WHEN vi.COD_CLIENTE_ATUAL in ('107358','1810','103595','1716','1674','1568','1482','11987','7572','1558','1500','107372','107443','1714','1724','1668','1810','103595','1716','1674','1568','1482','11987','7572','1558','1500','107372','107443','1714','24393','1724','1668','1486','183139','160911','7454','1562','28189','1566','7451','7453','498889') THEN 'THALES OLIVEIRA'
+WHEN vi.COD_CLIENTE_ATUAL in ('7530','9702','1504','1542','1518','1538','1726','1508','3123','7595','1712','7588','1512','1546','7597','1492','1490','7580','1510','7590','7622','123559','7620','7621','1540','3337','1706','1759','1704','280989','1480','1670','1602','9855','7444','7531','7461') THEN 'ALEX PEREIRA'
+WHEN vi.COD_CLIENTE_ATUAL in ('20409','1811','1761','1765','301879','255615','1794','2680','12297','2682','1927','2851','2988','9707','11705','2679','461802','461825','461666','460113','461667','461821','461813','7468','473014','446830','288734','460999','473014','2389','1746','151741','186061','7148','2061','7151','1812','474787','7144','2681') THEN 'RENATO.PEREIRA'
+WHEN vi.COD_CLIENTE_ATUAL in ('1922','2683','3133','3605','5029','1524','1718','1718','1742','2882','28942','1758','1720','1722','1678','1698','1684','31458','54','3134','1768','1680','192758','1696','1530') THEN 'LUCAS BRENDO'
+WHEN vi.COD_CLIENTE_ATUAL in ('1528','7537','1648','1596','1622','941','1588','1590','1608','1628','1652','1618','1604','1640','1650','1632','1662','1710','1656','1488','1478','1598','107434','1516','1522','1642','9743','1620','1809','1548','7471','1700','1868','1612','1644','2300','1582','1660','1666','1694','1592','1606','1594','1634','1610','1646','1484','1554','1616','1676','1474','1658','1586','1614','1702','1624','427703','1352','1626','472725') THEN 'ERNANDES JUNIOR'
+WHEN vi.COD_CLIENTE_ATUAL in ('11518','7433','12201','452595','430683','449238','7594','1520','1738','1689','1672','452056','12979') THEN 'PEDRO HENRIQUE'
+WHEN vi.COD_CLIENTE_ATUAL in ('192750','192746','1772','1748','2015','1767','7439','1793','9726','1801','1780','1797','1818','1736','1744','1766','1774','1764','450807','24483','350315200','35031520','584525990','1750','455142','192762','1752','4170','13917','100760','1584','1806','192146','1690','53','449400','13144','449403','1127346','1816','1788','1763','1795','1777','1775','53','7584','169411720','455688','455586','1762','472785','473252','473241','473251','1805','1800','1807','1498','1630','473238','473246','449404','5246','456905','473236','475568','487291','1769','493428','473231','449406','473253') THEN 'GILMARA.DINO'
+--WHEN vi.COD_CLIENTE_ATUAL in ('1530') THEN 'SAMUEL JUNIOR'
+WHEN vi.COD_CLIENTE_ATUAL in ('2487','24527','11599','11920','7152','62389','1894','1944','1820','97375','11776','7153','121770','12274','11720','460086','264241','7211','7150','2487','7146') THEN 'FILIPI.SILVA'
+WHEN vi.COD_CLIENTE_ATUAL in ('1','12005') THEN 'EVERSON.COSTA'
+WHEN vi.COD_CLIENTE_ATUAL in ('172616','1734','1730','1476','474932','7593','1494','1732','934','389916','1682') THEN 'WELTON BRITO'
+ELSE 'VERIFICAR'
          END                                                            AS [RESPONSAVEL DOIS]
 
         ,acc.K_observacaofatura                                         AS [MOTIVO SUSPENSAO]
@@ -108,6 +109,14 @@ WITH BASE AS (
     WHERE vi.[STATUS_FATURAMENTO] NOT IN ('Faturado')
       AND vi.[STATUS_TKT]         = 'ATIVO'
       AND vi.[FORMA_RECEBIMENTO]  IN ('FATURADO','GOVERNO')
+
+AND (
+      ISNULL(vi.[TARIFA], 0)
+    + ISNULL(vi.[TAXA_EMBARQUE], 0)
+    + ISNULL(vi.[OUTRAS_TAXAS], 0)
+    + ISNULL(vi.[MARKUP], 0)
+) <> 0
+
 ),
 
 -- ── Calcula os limites do período de faturamento ──────────────────────────
@@ -187,7 +196,13 @@ SELECT
     [FORMA DE PAGAMENTO], [FORMA DE RECEBIMENTO], STATUS,
     FATURA_CRE, STATUS_FATURAMENTO, FATURISTA, RESPONSAVEL, SISTEMA_RESERVA,
     TIPOACCOUNTING,
-    [RESPONSAVEL DOIS], [MOTIVO SUSPENSAO], [ACIONAR O RESPONSAVEL], [STATUS VOESYNC],
+    [RESPONSAVEL DOIS],
+    CASE [RESPONSAVEL DOIS]
+        WHEN 'GILMARA.DINO'   THEN 'FATURAMENTO - SAO PAULO'
+        WHEN 'RENATO.PEREIRA' THEN 'FATURAMENTO - SAO PAULO'
+        ELSE 'FATURAMENTO - BRASILIA'
+    END AS [FILIAL DE FATURAMENTO],
+    [MOTIVO SUSPENSAO], [ACIONAR O RESPONSAVEL], [STATUS VOESYNC],
 
     -- ── colunas de prazo (novas) ─────────────────────────────────────────────
     PERIODICIDADE,
@@ -203,7 +218,35 @@ SELECT
     END AS DIAS_EM_ATRASO,
 
     -- Status principal de prazo
+    -- Clientes com ciclo de faturamento personalizado sobrepõem a regra geral do contrato
     CASE
+        WHEN COD_CLIENTE_ATUAL = '1526' THEN  -- PETROBRAS: ciclo 26/M-1 a 25/M
+            CASE
+                WHEN DATA_EMISSAO_CALC IS NULL THEN 'NÃO CLASSIFICADO'
+                WHEN DATA_EMISSAO_CALC BETWEEN
+                    DATEFROMPARTS(YEAR(DATEADD(MONTH,-1,DATA_ATUAL)), MONTH(DATEADD(MONTH,-1,DATA_ATUAL)), 26)
+                    AND
+                    DATEFROMPARTS(YEAR(DATA_ATUAL), MONTH(DATA_ATUAL), 25)
+                THEN 'DENTRO DO PRAZO' ELSE 'FORA DO PRAZO'
+            END
+        WHEN COD_CLIENTE_ATUAL = '1530' THEN  -- AG PLANALTO DF: ciclo 21/M-1 a 20/M
+            CASE
+                WHEN DATA_EMISSAO_CALC IS NULL THEN 'NÃO CLASSIFICADO'
+                WHEN DATA_EMISSAO_CALC BETWEEN
+                    DATEFROMPARTS(YEAR(DATEADD(MONTH,-1,DATA_ATUAL)), MONTH(DATEADD(MONTH,-1,DATA_ATUAL)), 21)
+                    AND
+                    DATEFROMPARTS(YEAR(DATA_ATUAL), MONTH(DATA_ATUAL), 20)
+                THEN 'DENTRO DO PRAZO' ELSE 'FORA DO PRAZO'
+            END
+        WHEN COD_CLIENTE_ATUAL = '1486' THEN  -- MRE DIVISAO DO PESSOAL: ciclo 14/M-1 a 13/M
+            CASE
+                WHEN DATA_EMISSAO_CALC IS NULL THEN 'NÃO CLASSIFICADO'
+                WHEN DATA_EMISSAO_CALC BETWEEN
+                    DATEFROMPARTS(YEAR(DATEADD(MONTH,-1,DATA_ATUAL)), MONTH(DATEADD(MONTH,-1,DATA_ATUAL)), 14)
+                    AND
+                    DATEFROMPARTS(YEAR(DATA_ATUAL), MONTH(DATA_ATUAL), 13)
+                THEN 'DENTRO DO PRAZO' ELSE 'FORA DO PRAZO'
+            END
         WHEN DATA_EMISSAO_CALC IS NULL  THEN 'NÃO CLASSIFICADO'
         WHEN PERIODICIDADE IS NULL      THEN 'NÃO CLASSIFICADO'
         WHEN DATA_FIM_PERIODO IS NULL   THEN 'NÃO CLASSIFICADO'

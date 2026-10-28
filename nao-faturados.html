@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -57,6 +57,12 @@ main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .kpi-card.orange::before{background:linear-gradient(90deg,var(--warning),#ffd27a);}
 .kpi-card.red::before{background:linear-gradient(90deg,var(--danger),#ff9a9a);}
 .kpi-card.purple::before{background:linear-gradient(90deg,#a78bfa,#c4b5fd);}
+.kpi-card.vip-svc{background:#000 !important;border-color:#c8a800;}
+.kpi-card.vip-svc::before{background:linear-gradient(90deg,#FFD700,#FFA500) !important;}
+.kpi-card.vip-svc .kpi-label{color:#FFD700;}
+.kpi-card.vip-svc .kpi-value{color:#FFD700;}
+.kpi-card.vip-svc .kpi-sub{color:#c8a800;}
+.kpi-card.vip-svc .kpi-icon{opacity:.25;}
 .kpi-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
 .kpi-value{font-size:22px;font-weight:700;margin:4px 0 2px;}
 .kpi-value.green{color:var(--success);}
@@ -138,9 +144,54 @@ tr:hover td{background:rgba(79,126,248,.04);}
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
   .chart-grid{grid-template-columns:1fr;}
 }
+
+/* ── LOGIN OVERLAY ── */
+#auth-overlay{position:fixed;inset:0;background:#0f172a;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+#auth-overlay.hidden{display:none}
+.auth-box{background:var(--card,#1e293b);border:1px solid var(--border,#334155);border-radius:16px;padding:36px 40px;width:360px;max-width:90vw;box-shadow:0 25px 60px rgba(0,0,0,.5)}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-txt{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.auth-logo-sub{font-size:11px;color:var(--text-dim,#94a3b8);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.auth-field{margin-bottom:16px}
+.auth-field label{display:block;font-size:11px;font-weight:600;color:var(--text-dim,#94a3b8);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.auth-field input{width:100%;box-sizing:border-box;background:var(--bg,#0f172a);border:1px solid var(--border,#334155);color:#fff;padding:10px 14px;border-radius:8px;font-size:14px;outline:none;transition:border .2s}
+.auth-field input:focus{border-color:var(--primary,#4f7ef8)}
+.auth-btn{width:100%;padding:11px;background:var(--primary,#4f7ef8);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;transition:opacity .2s}
+.auth-btn:hover{opacity:.9}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-msg{font-size:12px;color:#f87171;margin-top:10px;min-height:16px;text-align:center}
+/* ── PERFIS & USUÁRIOS ── */
+.perm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}
+.perm-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text,#e2e8f0)}
+.perm-item input[type=checkbox]{accent-color:var(--primary,#4f7ef8);width:14px;height:14px}
+.badge-perfil{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.badge-gestor{background:#1e40af;color:#bfdbfe}
+.badge-operacional{background:#065f46;color:#a7f3d0}
+.badge-custom{background:#4c1d95;color:#ddd6fe}
+.badge-inativo{background:#374151;color:#9ca3af}
 </style>
 </head>
 <body>
+
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-txt">VOETUR</div>
+      <div class="auth-logo-sub">Relatório de Não Faturados</div>
+    </div>
+    <div class="auth-field">
+      <label>Usuário</label>
+      <input id="auth-login" type="text" placeholder="ex: everson.costa" autocomplete="username" onkeydown="if(event.key==='Enter')_authLogin()">
+    </div>
+    <div class="auth-field">
+      <label>Senha</label>
+      <input id="auth-senha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')_authLogin()">
+    </div>
+    <button class="auth-btn" id="auth-btn" onclick="_authLogin()">Entrar</button>
+    <div class="auth-msg" id="auth-msg"></div>
+  </div>
+</div>
+
 
 <aside>
   <div class="logo">
@@ -152,30 +203,33 @@ tr:hover td{background:rgba(79,126,248,.04);}
   </div>
   <nav>
     <div class="nav-group">Produtos</div>
-    <div class="nav-item active" onclick="goPage('aereo',this)"><span class="ic">✈</span><span>Aéreo</span></div>
-    <div class="nav-item" onclick="goPage('terrestre',this)"><span class="ic">🚌</span><span>Terrestre</span></div>
-    <div class="nav-item" onclick="goPage('faturadas',this)"><span class="ic">✅</span><span>Faturadas</span></div>
+    <div class="nav-item active" data-perm="aereo" onclick="goPage('aereo',this)"><span class="ic">✈</span><span>Aéreo</span></div>
+    <div class="nav-item" data-perm="terrestre" onclick="goPage('terrestre',this)"><span class="ic">🚌</span><span>Terrestre</span></div>
+    <div class="nav-item" data-perm="faturadas" onclick="goPage('faturadas',this)"><span class="ic">✅</span><span>Faturadas</span></div>
+    <div class="nav-item" data-perm="calendario" onclick="goPage('calendario',this)"><span class="ic">📅</span><span>Calendário Fat.</span></div>
 
     <div class="nav-group">Análise</div>
-    <div class="nav-item" onclick="goPage('kpis',this)"><span class="ic">📈</span><span>KPIs</span></div>
-    <div class="nav-item" onclick="goPage('clientes',this)"><span class="ic">🏢</span><span>Clientes</span></div>
-    <div class="nav-item" onclick="goPage('responsaveis',this)"><span class="ic">👤</span><span>Responsáveis</span></div>
-    <div class="nav-item" onclick="goPage('faturistas',this)"><span class="ic">🧾</span><span>Faturistas</span></div>
-    <div class="nav-item" onclick="goPage('sistemas',this)"><span class="ic">💻</span><span>Sist. Reserva</span></div>
+    <div class="nav-item" data-perm="kpis" onclick="goPage('kpis',this)"><span class="ic">📈</span><span>KPIs</span></div>
+    <div class="nav-item" data-perm="clientes" onclick="goPage('clientes',this)"><span class="ic">🏢</span><span>Clientes</span></div>
+    <div class="nav-item" data-perm="naoconf" onclick="goPage('naoconf',this)"><span class="ic">⚠️</span><span>Não Conformidade</span></div>
+    <div class="nav-item" data-perm="responsaveis" onclick="goPage('responsaveis',this)"><span class="ic">👤</span><span>Responsáveis</span></div>
+    <div class="nav-item" data-perm="faturistas" onclick="goPage('faturistas',this)"><span class="ic">🧾</span><span>Faturistas</span></div>
+    <div class="nav-item" data-perm="sistemas" onclick="goPage('sistemas',this)"><span class="ic">💻</span><span>Sist. Reserva</span></div>
 
     <div class="nav-group">Gestão</div>
-    <div class="nav-item" onclick="goPage('divergentes',this)"><span class="ic">⚠️</span><span>Divergentes</span></div>
-    <div class="nav-item" onclick="goPage('suspensas',this)"><span class="ic">🔒</span><span>Suspensas</span></div>
+    <div class="nav-item" data-perm="divergentes" onclick="goPage('divergentes',this)"><span class="ic">⚠️</span><span>Divergentes</span></div>
+    <div class="nav-item" data-perm="suspensas" onclick="goPage('suspensas',this)"><span class="ic">🔒</span><span>Suspensas</span></div>
 
     <div class="nav-group">Config</div>
-    <div class="nav-item" onclick="goPage('admin',this)"><span class="ic">⚙️</span><span>Administração</span></div>
+    <div class="nav-item" data-perm="admin" onclick="goPage('admin',this)"><span class="ic">⚙️</span><span>Administração</span></div>
   </nav>
-  <div class="user-bar">
-    <div class="avatar">V</div>
+  <div class="user-bar" style="cursor:default">
+    <div class="avatar" id="auth-avatar">V</div>
     <div>
-      <div style="font-size:13px;font-weight:600">Voetur</div>
-      <div style="font-size:11px;color:var(--text-dim)">Gestor</div>
+      <div style="font-size:13px;font-weight:600" id="auth-nome-display">–</div>
+      <div style="font-size:11px;color:var(--text-dim)" id="auth-perfil-display">–</div>
     </div>
+    <button onclick="_authLogout()" title="Sair" style="margin-left:8px;background:transparent;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px">Sair</button>
   </div>
 </aside>
 
@@ -188,7 +242,7 @@ tr:hover td{background:rgba(79,126,248,.04);}
     </div>
     <div class="top-right">
       <span style="font-size:11px;color:var(--text-dim)" id="last-update"></span>
-      <button class="btn btn-outline" onclick="exportCSV()">📥 Exportar CSV</button>
+<button class="btn" id="btn-limpar-dados" onclick="limparDados()" style="background:var(--danger);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px">🗑 Limpar dados</button>
       <button class="btn btn-primary" id="btn-atualizar" onclick="atualizarTudo(this)">🔄 Atualizar</button>
     </div>
   </div>
@@ -214,6 +268,20 @@ tr:hover td{background:rgba(79,126,248,.04);}
         </select>
         <select class="filter-input" id="aereo-gcli" onchange="filterAereoGlobal()" style="min-width:210px">
           <option value="">Todos os clientes</option>
+        </select>
+        <select class="filter-input" id="aereo-gfilial" onchange="filterAereoGlobal()" style="min-width:210px">
+          <option value="">Todas as filiais</option>
+          <option>FATURAMENTO - BRASILIA</option>
+          <option>FATURAMENTO - SAO PAULO</option>
+        </select>
+        <select class="filter-input" id="aereo-gstatusprazo" onchange="filterAereoGlobal()" style="min-width:170px">
+          <option value="">Todos os prazos</option>
+          <option>DENTRO DO PRAZO</option>
+          <option>FORA DO PRAZO</option>
+          <option>NÃO CLASSIFICADO</option>
+        </select>
+        <select class="filter-input" id="aereo-gresp2" onchange="filterAereoGlobal()" style="min-width:180px">
+          <option value="">Todos os faturistas</option>
         </select>
         <button onclick="limparFiltrosAereo()" style="padding:6px 14px;background:var(--danger,#ef4444);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">✕ Limpar filtros</button>
         <span id="aereo-filtro-label" style="font-size:11px;color:var(--text-dim)"></span>
@@ -271,6 +339,20 @@ tr:hover td{background:rgba(79,126,248,.04);}
             <select class="filter-input" id="aereo-cli-tbl" onchange="filterAereo()" style="display:none;min-width:200px">
               <option value="">Todos os clientes</option>
             </select>
+            <select class="filter-input" id="aereo-filial" onchange="filterAereo()" style="min-width:210px">
+              <option value="">Todas as filiais</option>
+              <option>FATURAMENTO - BRASILIA</option>
+              <option>FATURAMENTO - SAO PAULO</option>
+            </select>
+            <select class="filter-input" id="aereo-statusprazo" onchange="filterAereo()" style="min-width:170px">
+              <option value="">Todos os prazos</option>
+              <option>DENTRO DO PRAZO</option>
+              <option>FORA DO PRAZO</option>
+              <option>NÃO CLASSIFICADO</option>
+            </select>
+            <select class="filter-input" id="aereo-resp2" onchange="filterAereo()" style="min-width:180px">
+              <option value="">Todos os faturistas</option>
+            </select>
             <button class="btn btn-success" onclick="exportarExcel(aereoFiltered,'Aereo')" title="Exportar dados filtrados para Excel">⬇ Excel</button>
           </div>
           <div class="table-wrap">
@@ -311,6 +393,20 @@ tr:hover td{background:rgba(79,126,248,.04);}
         </select>
         <select class="filter-input" id="terr-gemp" onchange="filterTerrGlobal()" style="min-width:210px">
           <option value="">Todas as empresas</option>
+        </select>
+        <select class="filter-input" id="terr-gfilial" onchange="filterTerrGlobal()" style="min-width:210px">
+          <option value="">Todas as filiais</option>
+          <option>FATURAMENTO - BRASILIA</option>
+          <option>FATURAMENTO - SAO PAULO</option>
+        </select>
+        <select class="filter-input" id="terr-gstatusprazo" onchange="filterTerrGlobal()" style="min-width:170px">
+          <option value="">Todos os prazos</option>
+          <option>DENTRO DO PRAZO</option>
+          <option>FORA DO PRAZO</option>
+          <option>NÃO CLASSIFICADO</option>
+        </select>
+        <select class="filter-input" id="terr-gresp2" onchange="filterTerrGlobal()" style="min-width:180px">
+          <option value="">Todos os faturistas</option>
         </select>
         <button onclick="limparFiltrosTerr()" style="padding:6px 14px;background:var(--danger,#ef4444);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">✕ Limpar filtros</button>
         <span id="terr-filtro-label" style="font-size:11px;color:var(--text-dim)"></span>
@@ -367,6 +463,20 @@ tr:hover td{background:rgba(79,126,248,.04);}
             </select>
             <select class="filter-input" id="terr-cli-tbl" onchange="filterTerr()" style="display:none;min-width:200px">
               <option value="">Todos os clientes</option>
+            </select>
+            <select class="filter-input" id="terr-filial" onchange="filterTerr()" style="min-width:210px">
+              <option value="">Todas as filiais</option>
+              <option>FATURAMENTO - BRASILIA</option>
+              <option>FATURAMENTO - SAO PAULO</option>
+            </select>
+            <select class="filter-input" id="terr-statusprazo" onchange="filterTerr()" style="min-width:170px">
+              <option value="">Todos os prazos</option>
+              <option>DENTRO DO PRAZO</option>
+              <option>FORA DO PRAZO</option>
+              <option>NÃO CLASSIFICADO</option>
+            </select>
+            <select class="filter-input" id="terr-resp2" onchange="filterTerr()" style="min-width:180px">
+              <option value="">Todos os faturistas</option>
             </select>
             <button class="btn btn-success" onclick="exportarExcel(terrFiltered,'Terrestre')" title="Exportar dados filtrados para Excel">⬇ Excel</button>
           </div>
@@ -479,10 +589,125 @@ tr:hover td{background:rgba(79,126,248,.04);}
     </div>
   </div>
 
+  <!-- ═══════════ CALENDÁRIO DE FATURAMENTO ═══════════ -->
+  <div id="page-calendario" class="page">
+    <div class="content-area">
+
+      <!-- Header do calendário -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="_calNavMes(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">‹</button>
+          <div id="cal-titulo" style="font-size:17px;font-weight:700;min-width:180px;text-align:center"></div>
+          <button onclick="_calNavMes(1)"  style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">›</button>
+          <button onclick="_calHoje()" style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);cursor:pointer;font-size:11px;font-weight:600">Hoje</button>
+        </div>
+
+        <!-- Filtro faturista -->
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:11px;color:var(--text-dim);white-space:nowrap;font-weight:600">👤 Faturista</label>
+          <select id="cal-filtro-fat" onchange="_calSetFiltroFat(this.value)"
+            style="padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);
+                   color:var(--text);font-size:12px;cursor:pointer;min-width:160px">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <!-- Filtro produto -->
+        <div style="display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:auto">
+          <button id="cal-btn-ambos"    onclick="_calSetFiltro('ambos')"    style="padding:7px 16px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;font-weight:600">Todos</button>
+          <button id="cal-btn-aereo"    onclick="_calSetFiltro('aereo')"    style="padding:7px 16px;border:none;background:none;color:var(--text-dim);cursor:pointer;font-size:12px">✈ Aéreo</button>
+          <button id="cal-btn-terrestre" onclick="_calSetFiltro('terrestre')" style="padding:7px 16px;border:none;background:none;color:var(--text-dim);cursor:pointer;font-size:12px">🚌 Terrestre</button>
+        </div>
+      </div>
+
+      <!-- Legenda + stats -->
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:14px;flex-wrap:wrap">
+        <div id="cal-stats" style="flex:1"></div>
+        <div style="display:flex;gap:12px">
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)">
+            <div style="width:12px;height:12px;border-radius:2px;background:rgba(78,110,242,.35);border-left:3px solid #4e6ef2"></div> Aéreo
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)">
+            <div style="width:12px;height:12px;border-radius:2px;background:rgba(167,139,250,.35);border-left:3px solid #a78bfa"></div> Terrestre
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)">
+            <div style="width:12px;height:12px;border-radius:50%;background:var(--primary)"></div> Hoje
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade do calendário -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="cal-container"></div>
+      </div>
+
+      <!-- Rodapé: regra -->
+      <div style="margin-top:14px;font-size:11px;color:var(--text-dim);text-align:right">
+        ⚖ Regra: Data fim de período + 3 dias úteis = data de envio da fatura ao cliente
+      </div>
+
+    </div>
+  </div>
+
   <!-- ═══════════ CLIENTES ═══════════ -->
   <div id="page-clientes" class="page">
     <div class="content-area">
-      <div>
+
+      <!-- Dashboard Cadastro de Clientes (visível quando DADOS_REAIS.clientes carregado) -->
+      <div id="cad-dashboard" style="display:none">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+          <div class="section-title" style="margin:0;flex:1">Cadastro de Clientes</div>
+          <select id="cad-empresa" class="filter-input" style="min-width:220px" onchange="renderCadastro()">
+            <option value="">Todas as Empresas</option>
+          </select>
+          <button class="btn btn-success" onclick="exportarExcel(cadFiltrado(),'Clientes')">⬇ Excel</button>
+        </div>
+        <div class="kpi-grid" id="cad-kpis-1" style="margin-bottom:14px"></div>
+        <div class="kpi-grid" id="cad-kpis-2" style="margin-bottom:24px"></div>
+
+        <!-- ── VISÃO POR FATURISTA ── -->
+        <div class="card" style="margin-bottom:28px;padding:0;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--surface2) 0%,var(--surface) 100%)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#818cf8);display:flex;align-items:center;justify-content:center;font-size:16px">👤</div>
+              <div>
+                <div style="font-weight:700;font-size:14px">Visão por Faturista</div>
+                <div style="font-size:11px;color:var(--text-dim)">Distribuição de clientes por responsável</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+              <button id="cad-fat-tab-a" onclick="_cadFatTab('aereo')"
+                style="padding:7px 18px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s">✈ Aéreo</button>
+              <button id="cad-fat-tab-t" onclick="_cadFatTab('terrestre')"
+                style="padding:7px 18px;border:none;background:none;color:var(--text-dim);cursor:pointer;font-size:12px;transition:all .15s">🚌 Terrestre</button>
+            </div>
+          </div>
+          <div id="cad-fat-grid" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <div class="section-title">Clientes com Contrato Ativo — mais Antigos</div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Razão Social</th><th>Empresa</th><th>Categoria</th>
+                <th>Início Contrato</th><th>Término Contrato</th>
+                <th style="text-align:right">Tempo (anos)</th>
+                <th>Faturista Aéreo</th><th>Sit. Cadastro</th>
+              </tr></thead>
+              <tbody id="cad-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination"><span id="cad-info"></span><div class="page-btns" id="cad-pager"></div></div>
+        </div>
+      </div>
+
+      <!-- Estado sem dados / ranking de não faturados (fallback) -->
+      <div id="cad-sem-dados">
+        <div class="card" style="padding:28px 24px;text-align:center;color:var(--text-dim);margin-bottom:24px">
+          Dados de cadastro não carregados. Configure e execute a query <b>Clientes</b> em
+          <b>Administração → Carregar Dados</b> para ver o painel completo.
+        </div>
         <div class="section-title">Ranking de Clientes por Valor Não Faturado</div>
         <div class="card">
           <div class="filters">
@@ -501,31 +726,200 @@ tr:hover td{background:rgba(79,126,248,.04);}
           <div class="pagination"><span id="cli-info"></span><div class="page-btns" id="cli-pager"></div></div>
         </div>
       </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ NÃO CONFORMIDADE ═══════════ -->
+  <div id="page-naoconf" class="page">
+    <div class="content-area">
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+        <div class="section-title" style="margin:0;flex:1">⚠️ Clientes Voetur — Não Conformidade</div>
+        <button class="btn" onclick="buildNaoConf()" style="background:var(--primary);color:#fff;padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:12px">🔄 Atualizar</button>
+        <button class="btn btn-success" onclick="_exportarNC()">⬇ Excel</button>
+      </div>
+
+      <!-- KPIs por cliente selecionado (renovação contrato) -->
+      <div id="nc-kpis-cliente" style="display:none;margin-bottom:20px">
+        <div class="section-title" id="nc-kpis-cli-titulo" style="margin-bottom:10px"></div>
+        <div class="kpi-grid" id="nc-kpis-cli-grid"></div>
+      </div>
+
+      <!-- Layout dois painéis -->
+      <div style="display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start">
+
+        <!-- ── FORMULÁRIO ── -->
+        <div class="card" style="padding:20px">
+          <div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:14px;letter-spacing:.3px">➕ Registrar Não Conformidade</div>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+
+            <div style="position:relative">
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Cliente *</div>
+              <input id="nc-cliente" class="filter-input" style="width:100%;box-sizing:border-box" placeholder="Digite nome ou código..." autocomplete="off" oninput="_ncAutoComplete(this)" onblur="setTimeout(()=>{const d=document.getElementById('nc-ac-drop');if(d)d.style.display='none'},200)">
+              <div id="nc-ac-drop" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:999;background:var(--surface2);border:1px solid var(--border);border-radius:7px;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+            </div>
+
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Código do Cliente</div>
+              <input id="nc-cod-cliente" class="filter-input" style="width:100%;box-sizing:border-box;background:var(--surface2)" placeholder="Preenchido automaticamente" readonly>
+            </div>
+
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Área *</div>
+              <select id="nc-area" class="filter-input" style="width:100%;box-sizing:border-box">
+                <option value="">Selecione a área</option>
+                <option>Faturamento</option>
+                <option>Comercial</option>
+                <option>Cobrança</option>
+                <option>Outras</option>
+              </select>
+            </div>
+
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Motivo *</div>
+              <select id="nc-motivo" class="filter-input" style="width:100%;box-sizing:border-box">
+                <option value="">Selecione o motivo</option>
+              </select>
+            </div>
+
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Data da Ocorrência *</div>
+              <input type="date" id="nc-data-ocorrencia" class="filter-input" style="width:100%;box-sizing:border-box">
+            </div>
+
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Usuário / Login *</div>
+              <input id="nc-usuario" class="filter-input" style="width:100%;box-sizing:border-box" placeholder="Seu nome ou login">
+            </div>
+
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Descrição do Problema</div>
+              <textarea id="nc-descricao" class="filter-input" style="width:100%;box-sizing:border-box;resize:vertical;min-height:80px;font-family:inherit;font-size:13px" placeholder="Descreva detalhes da ocorrência..."></textarea>
+            </div>
+
+            <button onclick="salvarNC()" style="background:var(--primary);color:#fff;border:none;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">💾 Registrar Não Conformidade</button>
+            <div id="nc-form-msg" style="font-size:12px;text-align:center;min-height:18px"></div>
+
+          </div>
+
+          <!-- Admin: adicionar novo motivo -->
+          <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+            <button onclick="const p=document.getElementById('nc-admin-panel');p.style.display=p.style.display==='none'?'flex':'none'" style="background:none;border:1px solid var(--border);border-radius:5px;padding:5px 10px;cursor:pointer;color:var(--text-dim);font-size:11px">⚙️ Admin — Novo Motivo</button>
+            <div id="nc-admin-panel" style="display:none;margin-top:10px;flex-direction:column;gap:8px">
+              <input type="password" id="nc-admin-pin" class="filter-input" placeholder="PIN Admin" style="width:100%;box-sizing:border-box">
+              <input id="nc-novo-motivo" class="filter-input" placeholder="Nome do novo motivo" style="width:100%;box-sizing:border-box">
+              <button onclick="adicionarMotivoNC()" style="background:var(--warning);color:#000;border:none;border-radius:6px;padding:7px;font-size:12px;cursor:pointer;font-weight:600">+ Adicionar Motivo</button>
+              <div id="nc-admin-msg" style="font-size:11px;text-align:center;min-height:16px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── LISTA DE OCORRÊNCIAS ── -->
+        <div>
+
+          <!-- KPI resumo geral -->
+          <div class="kpi-grid" id="nc-kpis-resumo" style="margin-bottom:16px;grid-template-columns:repeat(5,1fr)"></div>
+
+          <!-- Filtros da lista -->
+          <div class="filters" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <input class="filter-input" type="text" id="nc-f-cliente" placeholder="🔍 Filtrar cliente..." oninput="_ncRenderTabela()" style="min-width:160px">
+            <select class="filter-input" id="nc-f-area" onchange="_ncRenderTabela()">
+              <option value="">Todas as áreas</option>
+              <option>Faturamento</option><option>Comercial</option><option>Cobrança</option><option>Outras</option>
+            </select>
+            <select class="filter-input" id="nc-f-motivo" onchange="_ncRenderTabela()">
+              <option value="">Todos os motivos</option>
+            </select>
+            <input class="filter-input" type="date" id="nc-f-de"  onchange="_ncRenderTabela()" title="De">
+            <input class="filter-input" type="date" id="nc-f-ate" onchange="_ncRenderTabela()" title="Até">
+            <button onclick="_ncLimparFiltros()" style="background:var(--danger);color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px">✕ Limpar</button>
+          </div>
+
+          <!-- Tabela -->
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="min-width:130px">Cliente</th>
+                    <th>Cód.</th>
+                    <th>Área</th>
+                    <th style="min-width:180px">Motivo</th>
+                    <th>Data Ocorrência</th>
+                    <th>Usuário</th>
+                    <th style="min-width:200px">Descrição</th>
+                    <th>Cadastrado em</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="nc-tbody"></tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <span id="nc-info"></span>
+              <div class="page-btns" id="nc-pager"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
 
   <!-- ═══════════ RESPONSÁVEIS ═══════════ -->
   <div id="page-responsaveis" class="page">
     <div class="content-area">
-      <div>
-        <div class="section-title">Indicadores por Responsável</div>
-        <div class="card">
-          <div class="filters">
-            <input class="filter-input" type="text" placeholder="🔍 Buscar responsável..." id="resp-q" oninput="filterResp()" style="flex:1">
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr>
-                <th>#</th><th>Responsável</th><th style="text-align:right">Qtd Vendas</th>
-                <th style="text-align:right">Valor Total</th><th style="text-align:right">Aéreo</th>
-                <th style="text-align:right">Terrestre</th><th style="text-align:right">Nao Faturado</th><th style="text-align:right">Pré-Fatura</th>
-              </tr></thead>
-              <tbody id="resp-tbody"></tbody>
-            </table>
-          </div>
-          <div class="pagination"><span id="resp-info"></span><div class="page-btns" id="resp-pager"></div></div>
-        </div>
+
+      <!-- Filtros -->
+      <div class="filters" style="margin-bottom:18px;flex-wrap:wrap;gap:8px">
+        <select id="resp-filtro-resp" class="filter-input" style="min-width:200px" onchange="buildResp()">
+          <option value="">Todos os Responsáveis</option>
+        </select>
+        <input class="filter-input" type="text" placeholder="🔍 Buscar responsável..." id="resp-q" oninput="filterResp()" style="flex:1;min-width:160px">
+        <button class="btn btn-success" onclick="exportarExcel(respFilt.map(r=>({Responsavel:r.resp,'A Faturar Aereo':r.nf_aereo,'A Faturar Terrestre':r.nf_terr,'Pre-Fatura':r.pf,Devolvido:r.dev,'Soma Total':r.total})),'Responsaveis')">⬇ Excel</button>
       </div>
+
+      <!-- KPI cards interativos -->
+      <div class="kpi-grid" id="resp-kpis" style="margin-bottom:22px"></div>
+
+      <!-- Gráfico de linha NF por mês -->
+      <div class="chart-card" style="margin-bottom:24px">
+        <div class="chart-title">Não Faturados por Mês — Aéreo vs Terrestre</div>
+        <div class="chart-wrap" style="height:320px"><canvas id="chart-resp-linha"></canvas></div>
+      </div>
+
+      <!-- Tabela resumo por responsável -->
+      <div class="section-title">Resumo por Faturista / Responsável</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Faturista / Responsável</th>
+              <th style="text-align:right;color:var(--danger)">A Faturar Aéreo</th>
+              <th style="text-align:right;color:var(--warning)">A Faturar Terrestre</th>
+              <th style="text-align:right;color:var(--success)">Pré-Fatura</th>
+              <th style="text-align:right;color:#a78bfa">Devolvido</th>
+              <th style="text-align:right">Soma de Total</th>
+            </tr></thead>
+            <tbody id="resp-tbody"></tbody>
+            <tfoot>
+              <tr style="font-weight:700;border-top:2px solid var(--border);background:var(--surface2)">
+                <td style="padding:10px 12px">Total Geral</td>
+                <td id="resp-tot-nfa" style="text-align:right;color:var(--danger);padding:10px 12px"></td>
+                <td id="resp-tot-nft" style="text-align:right;color:var(--warning);padding:10px 12px"></td>
+                <td id="resp-tot-pf"  style="text-align:right;color:var(--success);padding:10px 12px"></td>
+                <td id="resp-tot-dev" style="text-align:right;color:#a78bfa;padding:10px 12px"></td>
+                <td id="resp-tot-tot" style="text-align:right;padding:10px 12px"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="pagination"><span id="resp-info"></span><div class="page-btns" id="resp-pager"></div></div>
+      </div>
+
     </div>
   </div>
 
@@ -747,7 +1141,158 @@ tr:hover td{background:rgba(79,126,248,.04);}
           </div>
           <div id="query-status-faturadas" class="conn-status" style="margin-top:12px"></div>
         </div>
+        <div class="card" style="padding:20px;grid-column:1 / -1">
+          <div class="section-title" style="margin-bottom:16px">🏢 Consulta SQL — Cadastro de Clientes</div>
+          <div class="form-group">
+            <label class="form-label">SELECT usado pra carregar o cadastro de clientes</label>
+            <textarea class="form-input" id="adm-query-clientes" rows="10" style="font-family:Consolas,monospace;font-size:12px;resize:vertical" placeholder="SELECT HANDLE, APELIDO, CGCCPF, ... FROM BennerSistemaCorporativo.dbo.GN_PESSOAS WHERE ..." oninput="autoSaveQuery('clientes')"></textarea>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn btn-outline" onclick="testQuery('clientes')">🔎 Testar Consulta</button>
+            <button class="btn btn-success" onclick="carregarDadosReais('clientes')">📥 Carregar Dados</button>
+            <button class="btn btn-primary" onclick="saveQuery('clientes')">💾 Salvar</button>
+          </div>
+          <div id="query-status-clientes" class="conn-status" style="margin-top:12px"></div>
+        </div>
       </div>
+
+      <!-- ── ALERTAS DE E-MAIL ────────────────────────────── -->
+      <div style="max-width:900px;margin-top:20px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="background:linear-gradient(135deg,#1a2035,#1e3050);padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)">
+            <span style="font-size:22px">📧</span>
+            <div>
+              <div style="font-weight:600;color:#e8eaf6;font-size:15px">Alertas de E-mail — Calendário de Faturamento</div>
+              <div style="font-size:12px;color:var(--text-dim)">Cron diário às 7h00 — envia alerta ao faturista no dia de envio da fatura</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span id="adm-email-cron-status" style="font-size:12px;color:var(--text-dim)">—</span>
+              <button class="btn btn-outline" onclick="_admEmailTestarSmtp()" style="font-size:12px">✉ Testar SMTP</button>
+              <button class="btn btn-outline" onclick="_admTeamsTestar()" style="font-size:12px;background:rgba(98,100,167,.15);border-color:#6264a7;color:#a5a8ff">🟣 Testar Teams</button>
+              <button class="btn btn-primary" onclick="_admEmailSalvar()" style="font-size:12px">💾 Salvar</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div style="padding:20px;border-right:1px solid var(--border)">
+              <div style="font-weight:600;font-size:12px;margin-bottom:14px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em">Microsoft Graph API — Autenticação por Certificado</div>
+              <div class="form-group">
+                <label class="form-label">Tenant ID</label>
+                <input class="form-input" id="adm-graph-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client ID</label>
+                <input class="form-input" id="adm-graph-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+              </div>
+              <div class="form-group">
+                <label class="form-label">E-mail remetente</label>
+                <input class="form-input" id="adm-graph-from" type="email" placeholder="everson.costa@voetur.com.br">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Senha do certificado PFX (se houver)</label>
+                <input class="form-input" id="adm-graph-pfxpass" type="password" placeholder="deixe em branco se sem senha">
+              </div>
+              <div id="adm-cert-status" style="font-size:12px;margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(0,0,0,.2)">—</div>
+              <div id="adm-smtp-msg" style="font-size:12px;margin-top:8px;min-height:16px;color:var(--text-dim)"></div>
+            </div>
+            <div style="padding:20px">
+              <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em">Credenciais ERP para Cron Autônomo</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">O cron roda às 7h sem ninguém no sistema — precisa das credenciais salvas aqui para buscar os dados do ERP.</div>
+              <button class="btn btn-outline" onclick="_admEmailCopiarConnErp()" style="font-size:12px;margin-bottom:14px">📋 Copiar da conexão acima</button>
+              <div class="form-group">
+                <label class="form-label">Servidor ERP</label>
+                <input class="form-input" id="adm-cron-servidor" placeholder="ex: 10.141.0.111\bi">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="form-group">
+                  <label class="form-label">Porta</label>
+                  <input class="form-input" id="adm-cron-porta" value="1433" placeholder="1433">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Banco</label>
+                  <input class="form-input" id="adm-cron-banco" placeholder="BENNER">
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="form-group">
+                  <label class="form-label">Usuário</label>
+                  <input class="form-input" id="adm-cron-usuario" placeholder="sa">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Senha</label>
+                  <input class="form-input" id="adm-cron-senha" type="password" placeholder="••••••••">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:20px;border-top:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="font-weight:600;font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em">E-mails dos Faturistas (Responsável Dois)</div>
+              <button class="btn btn-success" onclick="_admEmailNovoFaturista()" style="margin-left:auto;font-size:12px">+ Adicionar</button>
+            </div>
+            <div id="adm-email-lista"></div>
+          </div>
+          <div style="padding:14px 20px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:600">📋 Log do cron:</div>
+            <div id="adm-email-log" style="font-family:Consolas,monospace;font-size:11px;color:#94a3b8;white-space:pre-wrap;max-height:140px;overflow-y:auto">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIP SERVICE ─────────────────────────────────── -->
+      <div style="max-width:900px;margin-top:20px">
+        <div class="card vip-svc" style="padding:20px">
+          <div class="section-title" style="margin-bottom:16px;color:#FFD700">⭐ VIP SERVICE — Faturamento Mensal</div>
+          <div id="vip-admin-tabela" style="margin-bottom:16px"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;border-top:1px solid #3a2e00;padding-top:16px;margin-top:4px">
+            <div>
+              <div class="form-label" style="color:#c8a800">Ano</div>
+              <input class="form-input" id="vip-novo-ano" placeholder="2025" style="width:80px;background:#111;border-color:#555;color:#FFD700" maxlength="4">
+            </div>
+            <div>
+              <div class="form-label" style="color:#c8a800">Mês</div>
+              <select class="form-input" id="vip-novo-mes" style="width:145px;background:#111;border-color:#555;color:#FFD700">
+                <option value="01">Janeiro</option>
+                <option value="02">Fevereiro</option>
+                <option value="03">Março</option>
+                <option value="04">Abril</option>
+                <option value="05">Maio</option>
+                <option value="06">Junho</option>
+                <option value="07">Julho</option>
+                <option value="08">Agosto</option>
+                <option value="09">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:150px">
+              <div class="form-label" style="color:#c8a800">Valor (R$)</div>
+              <input class="form-input" id="vip-novo-valor" placeholder="0,00" style="background:#111;border-color:#555;color:#FFD700">
+            </div>
+            <button class="btn" onclick="vipAdicionarRegistro()" style="background:#c8a800;color:#000;font-weight:700;white-space:nowrap">+ Adicionar</button>
+          </div>
+          <div id="vip-admin-msg" style="margin-top:8px;font-size:12px;min-height:16px;color:#c8a800"></div>
+        </div>
+        <!-- ── PERFIS & USUÁRIOS ── -->
+        <div class="card" style="padding:20px;grid-column:1/-1;margin-top:4px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+            <div class="section-title" style="margin:0">🔐 Perfis de Acesso</div>
+            <button class="btn btn-success" onclick="_admNovoPerfil()" style="margin-left:auto;font-size:12px">+ Novo Perfil</button>
+          </div>
+          <div id="adm-perfis-lista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px"></div>
+        </div>
+
+        <div class="card" style="padding:20px;grid-column:1/-1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+            <div class="section-title" style="margin:0">👤 Usuários</div>
+            <button class="btn btn-success" onclick="_admNovoUsuario()" style="margin-left:auto;font-size:12px">+ Novo Usuário</button>
+          </div>
+          <div id="adm-usuarios-lista"></div>
+        </div>
+
+
+      </div>
+
     </div>
   </div>
 
@@ -775,6 +1320,7 @@ const PAGE_META = {
   responsaveis: ['Responsáveis','Indicadores individuais por responsável'],
   faturistas: ['Faturistas','Volume e pendências por faturista'],
   sistemas: ['Sistemas de Reserva','Comparativo entre sistemas'],
+  calendario: ['Calendário de Faturamento','Datas de envio de faturas — fim de período + 3 dias úteis'],
   divergentes: ['Vendas Divergentes','Gestão de pendências e a faturar'],
   suspensas: ['Vendas Suspensas/Pendentes','Vendas com status pendente'],
   admin: ['Administração','Configuração da conexão ERP Benner'],
@@ -941,6 +1487,74 @@ function atualizarPrazoSection(dados, colStatus, colTotal, colCli, kpiElId, char
   );
 }
 
+// ── REGRAS ESPECIAIS DE PRAZO POR CLIENTE ────────────────────────────────────
+// Clientes com ciclo de faturamento diferente do padrão do contrato.
+// Período = [diaCorte do mês anterior, diaCorte-1 do mês corrente].
+// O STATUS_PRAZO calculado aqui sobrepõe o valor vindo do ERP para esses clientes.
+const _REGRAS_PRAZO_ESPECIAL = {
+  '1526': 26, // PETROBRAS — ciclo 26/M-1 a 25/M
+  '1530': 21, // AG PLANALTO DF — ciclo 21/M-1 a 20/M
+  '1486': 14, // MRE DIVISAO DO PESSOAL — ciclo 14/M-1 a 13/M
+};
+
+function _parseDateDMY(s) {
+  if (!s) return null;
+  const m = String(s).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+  const d = new Date(String(s).trim());
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function _calcStatusPrazoEspecial(cod, dataEmissao) {
+  const diaCorte = _REGRAS_PRAZO_ESPECIAL[String(cod || '').trim()];
+  if (!diaCorte) return null;
+  const venda = _parseDateDMY(dataEmissao);
+  if (!venda) return null;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  // Período ativo baseado em hoje
+  let iniYear, iniMonth;
+  if (hoje.getDate() >= diaCorte) {
+    iniYear  = hoje.getFullYear();
+    iniMonth = hoje.getMonth();
+  } else {
+    const ant = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    iniYear  = ant.getFullYear();
+    iniMonth = ant.getMonth();
+  }
+  const periodoInicio = new Date(iniYear, iniMonth, diaCorte);
+  const periodoFim    = new Date(iniYear, iniMonth + 1, diaCorte - 1);
+
+  if (venda >= periodoInicio && venda <= periodoFim) return 'DENTRO DO PRAZO';
+  return 'FORA DO PRAZO';
+}
+
+function _aplicarRegrasEspeciaisAereo(dados) {
+  if (!dados || !dados.length) return;
+  const cols    = Object.keys(dados[0]);
+  const colCod  = cols.find(c => c.trim().toUpperCase() === 'COD_CLIENTE_ATUAL');
+  const colData = cols.find(c => c.trim().toUpperCase() === 'DATA EMISSAO');
+  if (!colCod || !colData) return;
+  dados.forEach(r => {
+    const s = _calcStatusPrazoEspecial(r[colCod], r[colData]);
+    if (s) r.STATUS_PRAZO = s;
+  });
+}
+
+function _aplicarRegrasEspeciaisTerr(dados) {
+  if (!dados || !dados.length) return;
+  const cols    = Object.keys(dados[0]);
+  const colCod  = cols.find(c => c.trim().toUpperCase() === 'CODIGO');
+  const colData = cols.find(c => c.trim().toUpperCase() === 'DT EMISSAO');
+  if (!colCod || !colData) return;
+  dados.forEach(r => {
+    const s = _calcStatusPrazoEspecial(r[colCod], r[colData]);
+    if (s) r.STATUS_PRAZO = s;
+  });
+}
+
 // ── DADOS REAIS DO ERP (via "📥 Carregar Dados" em Administração) ──
 // Item pedido em 2026-09-07: "Testar Consulta" só confirmava que a query
 // funciona e contava linhas — não atualizava as abas/cards, que continuavam
@@ -954,8 +1568,8 @@ function atualizarPrazoSection(dados, colStatus, colTotal, colCli, kpiElId, char
 // livremente), por isso a tabela é desenhada de forma GENÉRICA (colunas
 // dinâmicas, função renderGenerico) assim que há dado real carregado pra
 // aquele produto; sem dado real, a aba continua com o layout fixo de sempre.
-const DADOS_REAIS = { aereo: null, terrestre: null, faturadas: null };
-const LABEL_PRODUTO = { aereo: 'Aéreo', terrestre: 'Terrestre', faturadas: 'Faturadas' };
+const DADOS_REAIS = { aereo: null, terrestre: null, faturadas: null, clientes: null };
+const LABEL_PRODUTO = { aereo: 'Aéreo', terrestre: 'Terrestre', faturadas: 'Faturadas', clientes: 'Clientes' };
 
 // ── CACHE IndexedDB ──
 const _DB = (() => {
@@ -984,9 +1598,33 @@ const _DB = (() => {
           req.onerror   = () => res(null);
         });
       } catch(e) { return null; }
+    },
+    async limparTudo() {
+      try {
+        const db = await open();
+        await new Promise((res, rej) => {
+          const tx = db.transaction('dados','readwrite');
+          const req = tx.objectStore('dados').clear();
+          req.onsuccess = () => res();
+          req.onerror   = e => rej(e.target.error);
+        });
+      } catch(e) { console.warn('Cache clear:', e); }
     }
   };
 })();
+
+async function limparDados() {
+  if (!confirm('Limpar todos os dados carregados do ERP?\n\nAs queries salvas NÃO serão apagadas.')) return;
+  // Zera memória
+  for (const tipo of Object.keys(DADOS_REAIS)) DADOS_REAIS[tipo] = null;
+  _ncCliCache = null;
+  // Limpa cache IndexedDB
+  await _DB.limparTudo();
+  // Reconstrói a página atual com dados de demonstração
+  atualizarPaginaAtual();
+  const btn = document.getElementById('btn-limpar-dados');
+  if (btn) { btn.textContent = '✅ Dados limpos'; setTimeout(() => { btn.textContent = '🗑 Limpar dados'; }, 2500); }
+}
 
 async function carregarDadosReais(tipo, { forcar = false } = {}) {
   const query = document.getElementById('adm-query-'+tipo).value.trim();
@@ -1012,6 +1650,7 @@ async function carregarDadosReais(tipo, { forcar = false } = {}) {
     const aviso = d.truncado ? ` (${fmtN(d.total)} no total — carregado o limite de segurança)` : '';
     showQueryStatus(tipo,'ok',`✅ ${fmtN(DADOS_REAIS[tipo].length)} linha(s) carregada(s) do ERP${aviso} — abra a aba "${LABEL_PRODUTO[tipo]}" pra ver.`);
     if(PAGE_BUILDERS[tipo]) PAGE_BUILDERS[tipo]();
+    _refreshDependentes(tipo);
   } catch(e){
     showQueryStatus(tipo,'err','❌ Servidor local não encontrado. Inicie o server.js com Node.js.');
   }
@@ -1211,7 +1850,7 @@ let aereoData=[], aereoFiltered=[], aereoGlobalFiltered=null, aereoPage=0;
 const PAGE_SZ=25;
 
 function limparFiltrosAereo() {
-  ['aereo-gano','aereo-gmes','aereo-gpag','aereo-gemp','aereo-gcli'].forEach(id => {
+  ['aereo-gano','aereo-gmes','aereo-gpag','aereo-gemp','aereo-gcli','aereo-gstatusprazo','aereo-gresp2'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
     localStorage.removeItem('benner_filtro_'+id);
@@ -1264,13 +1903,19 @@ function filterAereoGlobal() {
   const mes = (document.getElementById('aereo-gmes').value||'');
   const pag = (document.getElementById('aereo-gpag').value||'');
   const emp = (document.getElementById('aereo-gemp').value||'');
-  const cli = (document.getElementById('aereo-gcli').value||'');
+  const cli    = (document.getElementById('aereo-gcli').value||'');
+  const filial  = (document.getElementById('aereo-gfilial').value||'');
+  const gspA    = (document.getElementById('aereo-gstatusprazo').value||'');
+  const gr2A    = (document.getElementById('aereo-gresp2').value||'');
   const cols   = Object.keys(aereoData[0]||{});
   const colInc = cols.find(c=>c.trim().toUpperCase()==='DATA INCLUSAO');
   const colPag = cols.find(c=>/forma.*pag|pag.*forma/i.test(c.trim()) || /^forma de pagamento$/i.test(c.trim()));
   const colEmp = cols.find(c=>/^empresa$/i.test(c.trim()));
   const colCli = cols.find(c=>c.trim().toUpperCase()==='CLIENTE');
-  const ativos = [ano,mes,pag,emp,cli].filter(Boolean);
+  const colFilA = cols.find(c=>c.trim().toUpperCase()==='FILIAL DE FATURAMENTO');
+  const colGSPA = cols.find(c=>c.trim().toUpperCase()==='STATUS_PRAZO');
+  const colGR2A = cols.find(c=>c.trim().replace(/\s+/g,' ').toUpperCase()==='RESPONSAVEL DOIS');
+  const ativos = [ano,mes,pag,emp,cli,filial,gspA,gr2A].filter(Boolean);
   const lbl = document.getElementById('aereo-filtro-label');
   if(lbl) lbl.textContent = ativos.length ? `Filtrando: ${ativos.join(' · ')}` : '';
   aereoGlobalFiltered = aereoData.filter(r => {
@@ -1281,14 +1926,20 @@ function filterAereoGlobal() {
     }
     if(pag && colPag && (r[colPag]||'').toString().trim() !== pag) return false;
     if(emp && colEmp && (r[colEmp]||'').toString().trim() !== emp) return false;
-    if(cli && colCli && (r[colCli]||'').toString().trim() !== cli) return false;
+    if(cli    && colCli  && (r[colCli] ||'').toString().trim() !== cli)    return false;
+    if(filial  && colFilA  && (r[colFilA] ||'').toString().trim() !== filial) return false;
+    if(gspA   && colGSPA  && (r[colGSPA] ||'').toString().trim() !== gspA)   return false;
+    if(gr2A   && colGR2A  && (r[colGR2A] ||'').toString().trim() !== gr2A)   return false;
     return true;
   });
-  localStorage.setItem('benner_filtro_aereo-gano', ano);
-  localStorage.setItem('benner_filtro_aereo-gmes', mes);
-  localStorage.setItem('benner_filtro_aereo-gpag',  pag);
-  localStorage.setItem('benner_filtro_aereo-gemp',  emp);
-  localStorage.setItem('benner_filtro_aereo-gcli',  cli);
+  localStorage.setItem('benner_filtro_aereo-gano',         ano);
+  localStorage.setItem('benner_filtro_aereo-gmes',         mes);
+  localStorage.setItem('benner_filtro_aereo-gpag',         pag);
+  localStorage.setItem('benner_filtro_aereo-gemp',         emp);
+  localStorage.setItem('benner_filtro_aereo-gcli',         cli);
+  localStorage.setItem('benner_filtro_aereo-gfilial',      filial);
+  localStorage.setItem('benner_filtro_aereo-gstatusprazo', gspA);
+  localStorage.setItem('benner_filtro_aereo-gresp2',       gr2A);
   atualizarVisualizacoesAereo(aereoGlobalFiltered);
   filterAereo();
 }
@@ -1298,6 +1949,7 @@ function buildAereo() {
     aereoData = DADOS_REAIS.aereo.map(r=>({...r,
       FATURISTA:(r['RESPONSAVEL DOIS ']||r['RESPONSAVEL DOIS']||r.FATURISTA||'').toString().trim()
     }));
+    _aplicarRegrasEspeciaisAereo(aereoData);
     ocultarFiltrosFixos('aereo-status','aereo-sistema','aereo-faturista','aereo-mes');
     const cols   = Object.keys(aereoData[0]||{});
     const colInc = cols.find(c=>c.trim().toUpperCase()==='DATA INCLUSAO');
@@ -1319,9 +1971,21 @@ function buildAereo() {
       populateFilter('aereo-cli-tbl', [...new Set(aereoData.map(r=>(r[colCli]||'').toString().trim()).filter(Boolean))].sort());
       cliTbl.style.display = '';
     }
+    const _colSPA = cols.find(c=>c.trim().toUpperCase()==='STATUS_PRAZO');
+    if(_colSPA) {
+      const _spOpts = [...new Set(aereoData.map(r=>(r[_colSPA]||'').toString().trim()).filter(Boolean))].sort();
+      populateFilter('aereo-statusprazo', _spOpts);
+      populateFilter('aereo-gstatusprazo', _spOpts);
+    }
+    const _colR2A = cols.find(c=>c.trim().replace(/\s+/g,' ').toUpperCase()==='RESPONSAVEL DOIS');
+    if(_colR2A) {
+      const _r2Opts = [...new Set(aereoData.map(r=>(r[_colR2A]||'').toString().trim()).filter(Boolean))].sort();
+      populateFilter('aereo-resp2', _r2Opts);
+      populateFilter('aereo-gresp2', _r2Opts);
+    }
     const fg = document.getElementById('aereo-filtros-globais');
     if(fg) fg.style.display = 'flex';
-    restaurarFiltros('aereo-gano','aereo-gmes','aereo-gpag','aereo-gemp','aereo-gcli');
+    restaurarFiltros('aereo-gano','aereo-gmes','aereo-gpag','aereo-gemp','aereo-gcli','aereo-gstatusprazo','aereo-gresp2');
     filterAereoGlobal();
     return;
   }
@@ -1354,7 +2018,7 @@ function buildAereo() {
   buildBar('chart-aereo-fat', fatTop.map(x=>x[0].substring(0,20)), fatTop.map(x=>x[1]), '#f5a623', true);
 
   renderRankingSuspensas(aereoData, 'rank-aereo-motivo', 'rank-aereo-acionar');
-  restaurarFiltros('aereo-q','aereo-status','aereo-sistema','aereo-faturista','aereo-mes');
+  restaurarFiltros('aereo-q','aereo-status','aereo-sistema','aereo-faturista','aereo-mes','aereo-statusprazo','aereo-resp2');
   filterAereo();
 }
 
@@ -1379,9 +2043,19 @@ function filterAereo() {
       return _busca.some(c => String(r[c]??'').toLowerCase().includes(q));
     }) : base.slice();
     if(cliVal && _colCli) filtered = filtered.filter(r=>(r[_colCli]||'').toString().trim()===cliVal);
+    const filialVal = (document.getElementById('aereo-filial').value||'');
+    const _colFilial = _cols.find(c=>c.trim().toUpperCase()==='FILIAL DE FATURAMENTO');
+    if(filialVal && _colFilial) filtered = filtered.filter(r=>(r[_colFilial]||'').toString().trim()===filialVal);
+    const spVal = (document.getElementById('aereo-statusprazo').value||'');
+    const _colSP = _cols.find(c=>c.trim().toUpperCase()==='STATUS_PRAZO');
+    if(spVal && _colSP) filtered = filtered.filter(r=>(r[_colSP]||'').toString().trim()===spVal);
+    const r2Val = (document.getElementById('aereo-resp2').value||'');
+    const _colR2 = _cols.find(c=>c.trim().replace(/\s+/g,' ').toUpperCase()==='RESPONSAVEL DOIS');
+    if(r2Val && _colR2) filtered = filtered.filter(r=>(r[_colR2]||'').toString().trim()===r2Val);
     aereoFiltered = filtered;
     aereoPage=0;
     renderAereoTable();
+    atualizarVisualizacoesAereo(aereoFiltered);
     return;
   }
   const st=document.getElementById('aereo-status').value;
@@ -1437,6 +2111,7 @@ let terrData=[], terrFiltered=[], terrGlobalFiltered=null, terrPage=0;
 // Administração e popular esse array (ex: FATURADAS_DATA = resultado).
 let FATURADAS_DATA=[];
 let fdaData=[], fdaFiltered=[], fdaPage=0;
+let VIP_DATA = [];
 
 function _terrColConc(dados) {
   return dados[0] ? Object.keys(dados[0]).find(c=>/dt.*concil|concil/i.test(c)) : null;
@@ -1451,7 +2126,7 @@ function _terrAnoMes(val) {
 }
 
 function limparFiltrosTerr() {
-  ['terr-gano','terr-gmes','terr-gprod','terr-gpag','terr-gemp'].forEach(id => {
+  ['terr-gano','terr-gmes','terr-gprod','terr-gpag','terr-gemp','terr-gstatusprazo','terr-gresp2'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
     localStorage.removeItem('benner_filtro_'+id);
@@ -1496,13 +2171,19 @@ function filterTerrGlobal() {
   const mes  = (document.getElementById('terr-gmes').value||'');
   const prod = (document.getElementById('terr-gprod').value||'');
   const pag  = (document.getElementById('terr-gpag').value||'');
-  const emp  = (document.getElementById('terr-gemp').value||'');
+  const emp    = (document.getElementById('terr-gemp').value||'');
+  const filialT  = (document.getElementById('terr-gfilial').value||'');
+  const gspT     = (document.getElementById('terr-gstatusprazo').value||'');
+  const gr2T     = (document.getElementById('terr-gresp2').value||'');
   const cols = Object.keys(terrData[0]||{});
   const colConc = _terrColConc(terrData);
   const colProd = cols.find(c=>/^produto$/i.test(c.trim()));
   const colPag  = cols.find(c=>/forma.*pag|pag.*forma/i.test(c.trim()) || /^forma de pagamento$/i.test(c.trim()));
   const colEmp  = cols.find(c=>/^empresa$/i.test(c.trim()));
-  const ativos = [ano,mes,prod,pag,emp].filter(Boolean);
+  const colFilT  = cols.find(c=>c.trim().toUpperCase()==='FILIAL DE FATURAMENTO');
+  const colGSPT  = cols.find(c=>c.trim().toUpperCase()==='STATUS_PRAZO');
+  const colGR2T  = cols.find(c=>c.trim().replace(/\s+/g,' ').toUpperCase()==='RESPONSAVEL DOIS');
+  const ativos = [ano,mes,prod,pag,emp,filialT,gspT,gr2T].filter(Boolean);
   const lbl = document.getElementById('terr-filtro-label');
   if(lbl) lbl.textContent = ativos.length ? `Filtrando: ${ativos.join(' · ')}` : '';
   terrGlobalFiltered = terrData.filter(r => {
@@ -1513,14 +2194,20 @@ function filterTerrGlobal() {
     }
     if(prod && colProd && (r[colProd]||'').toString().trim() !== prod) return false;
     if(pag  && colPag  && (r[colPag] ||'').toString().trim() !== pag)  return false;
-    if(emp  && colEmp  && (r[colEmp] ||'').toString().trim() !== emp)  return false;
+    if(emp    && colEmp  && (r[colEmp] ||'').toString().trim() !== emp)    return false;
+    if(filialT && colFilT  && (r[colFilT] ||'').toString().trim() !== filialT) return false;
+    if(gspT   && colGSPT  && (r[colGSPT] ||'').toString().trim() !== gspT)    return false;
+    if(gr2T   && colGR2T  && (r[colGR2T] ||'').toString().trim() !== gr2T)    return false;
     return true;
   });
-  localStorage.setItem('benner_filtro_terr-gano',  ano);
-  localStorage.setItem('benner_filtro_terr-gmes',  mes);
-  localStorage.setItem('benner_filtro_terr-gprod', prod);
-  localStorage.setItem('benner_filtro_terr-gpag',  pag);
-  localStorage.setItem('benner_filtro_terr-gemp',  emp);
+  localStorage.setItem('benner_filtro_terr-gano',          ano);
+  localStorage.setItem('benner_filtro_terr-gmes',          mes);
+  localStorage.setItem('benner_filtro_terr-gprod',         prod);
+  localStorage.setItem('benner_filtro_terr-gpag',          pag);
+  localStorage.setItem('benner_filtro_terr-gemp',          emp);
+  localStorage.setItem('benner_filtro_terr-gfilial',       filialT);
+  localStorage.setItem('benner_filtro_terr-gstatusprazo',  gspT);
+  localStorage.setItem('benner_filtro_terr-gresp2',        gr2T);
   atualizarVisualizacoesTerr(terrGlobalFiltered);
   filterTerr();
 }
@@ -1530,6 +2217,7 @@ function buildTerr() {
     terrData = DADOS_REAIS.terrestre.map(r=>({...r,
       FATURISTA:(r['RESPONSAVEL DOIS ']||r['RESPONSAVEL DOIS']||r.FATURISTA||'').toString().trim()
     }));
+    _aplicarRegrasEspeciaisTerr(terrData);
     ocultarFiltrosFixos('terr-status','terr-sistema','terr-faturista','terr-mes');
     const cols    = Object.keys(terrData[0]||{});
     const colConc = _terrColConc(terrData);
@@ -1552,9 +2240,21 @@ function buildTerr() {
       populateFilter('terr-cli-tbl', [...new Set(terrData.map(r=>(r[colCliT]||'').toString().trim()).filter(Boolean))].sort());
       cliTblT.style.display = '';
     }
+    const _colSPT = cols.find(c=>c.trim().toUpperCase()==='STATUS_PRAZO');
+    if(_colSPT) {
+      const _spOptsT = [...new Set(terrData.map(r=>(r[_colSPT]||'').toString().trim()).filter(Boolean))].sort();
+      populateFilter('terr-statusprazo', _spOptsT);
+      populateFilter('terr-gstatusprazo', _spOptsT);
+    }
+    const _colR2T = cols.find(c=>c.trim().replace(/\s+/g,' ').toUpperCase()==='RESPONSAVEL DOIS');
+    if(_colR2T) {
+      const _r2OptsT = [...new Set(terrData.map(r=>(r[_colR2T]||'').toString().trim()).filter(Boolean))].sort();
+      populateFilter('terr-resp2', _r2OptsT);
+      populateFilter('terr-gresp2', _r2OptsT);
+    }
     const fg = document.getElementById('terr-filtros-globais');
     if(fg) fg.style.display = 'flex';
-    restaurarFiltros('terr-gano','terr-gmes','terr-gprod','terr-gpag','terr-gemp');
+    restaurarFiltros('terr-gano','terr-gmes','terr-gprod','terr-gpag','terr-gemp','terr-gstatusprazo','terr-gresp2');
     filterTerrGlobal();
     return;
   }
@@ -1590,7 +2290,7 @@ function buildTerr() {
   buildBar('chart-terr-fat', fatTop.map(x=>x[0].substring(0,20)), fatTop.map(x=>x[1]), '#a78bfa', true);
 
   renderRankingSuspensas(terrData, 'rank-terr-motivo', 'rank-terr-acionar');
-  restaurarFiltros('terr-q','terr-status','terr-sistema','terr-faturista','terr-mes');
+  restaurarFiltros('terr-q','terr-status','terr-sistema','terr-faturista','terr-mes','terr-statusprazo','terr-resp2');
   filterTerr();
 }
 
@@ -1612,9 +2312,19 @@ function filterTerr() {
       return _busca.some(c => String(r[c]??'').toLowerCase().includes(q));
     }) : base.slice();
     if(cliValT && _colCli) filtered = filtered.filter(r=>(r[_colCli]||'').toString().trim()===cliValT);
+    const filialValT = (document.getElementById('terr-filial').value||'');
+    const _colFilialT = _cols.find(c=>c.trim().toUpperCase()==='FILIAL DE FATURAMENTO');
+    if(filialValT && _colFilialT) filtered = filtered.filter(r=>(r[_colFilialT]||'').toString().trim()===filialValT);
+    const spValT = (document.getElementById('terr-statusprazo').value||'');
+    const _colSPT2 = _cols.find(c=>c.trim().toUpperCase()==='STATUS_PRAZO');
+    if(spValT && _colSPT2) filtered = filtered.filter(r=>(r[_colSPT2]||'').toString().trim()===spValT);
+    const r2ValT = (document.getElementById('terr-resp2').value||'');
+    const _colR2T2 = _cols.find(c=>c.trim().replace(/\s+/g,' ').toUpperCase()==='RESPONSAVEL DOIS');
+    if(r2ValT && _colR2T2) filtered = filtered.filter(r=>(r[_colR2T2]||'').toString().trim()===r2ValT);
     terrFiltered = filtered;
     terrPage=0;
     renderTerrTable();
+    atualizarVisualizacoesTerr(terrFiltered);
     return;
   }
   const st=document.getElementById('terr-status').value;
@@ -1660,6 +2370,143 @@ function renderTerrTable() {
   document.getElementById('terrestre-count').textContent=`(${terrFiltered.length} de ${terrData.length})`;
 }
 
+// ── VIP SERVICE ──
+const _VIP_MESES_NOME = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function getVipValor(ano, mes) {
+  let recs = VIP_DATA;
+  if (ano) recs = recs.filter(r => String(r.ano) === String(ano));
+  if (mes) {
+    const mesNum = String(mes).match(/^(\d+)/)?.[1]?.padStart(2,'0') || String(mes).padStart(2,'0');
+    recs = recs.filter(r => String(r.mes).padStart(2,'0') === mesNum);
+  }
+  return recs.reduce((s,r) => s + (parseFloat(r.valor)||0), 0);
+}
+
+function kpiVipService() {
+  const ano = document.getElementById('fda-ano')?.value || '';
+  const mes = document.getElementById('fda-mes')?.value || '';
+  const val = getVipValor(ano, mes);
+  const mesNome = mes ? mes.replace(/^\d+\./, '') : '';
+  const sub = VIP_DATA.length === 0
+    ? 'configure em Administração'
+    : ([ano, mesNome].filter(Boolean).join(' · ') || 'total geral');
+  return `<div class="kpi-card vip-svc"><div class="kpi-label">VIP SERVICE</div><div class="kpi-value">${fmtR(val)}</div><div class="kpi-sub">${sub}</div><div class="kpi-icon">⭐</div></div>`;
+}
+
+const _vipExpandidos = new Set();
+
+function vipRenderTabela() {
+  const el = document.getElementById('vip-admin-tabela');
+  if (!el) return;
+  if (!VIP_DATA.length) {
+    el.innerHTML = '<p style="color:#c8a800;font-size:12px;text-align:center;padding:20px 0">Nenhum registro cadastrado. Use o formulário abaixo para adicionar.</p>';
+    return;
+  }
+
+  // Agrupa por ano
+  const porAno = {};
+  for (const r of VIP_DATA) {
+    const a = String(r.ano);
+    if (!porAno[a]) porAno[a] = [];
+    porAno[a].push(r);
+  }
+  const anos = Object.keys(porAno).sort();
+  const totalGeral = VIP_DATA.reduce((s,r) => s+(parseFloat(r.valor)||0), 0);
+
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:#1a1100">
+      <th style="padding:9px 12px;text-align:left;color:#FFD700;font-size:11px;text-transform:uppercase;border-bottom:1px solid #c8a800;letter-spacing:.5px">Ano / Mês</th>
+      <th style="padding:9px 12px;text-align:right;color:#FFD700;font-size:11px;text-transform:uppercase;border-bottom:1px solid #c8a800;letter-spacing:.5px">Valor</th>
+      <th style="padding:9px 12px;border-bottom:1px solid #c8a800;width:36px"></th>
+    </tr></thead>
+    <tbody>`;
+
+  for (const ano of anos) {
+    const meses = porAno[ano].sort((a,b) => String(a.mes).localeCompare(String(b.mes)));
+    const totalAno = meses.reduce((s,r) => s+(parseFloat(r.valor)||0), 0);
+    const aberto = _vipExpandidos.has(ano);
+    html += `
+      <tr style="background:#1a1100;cursor:pointer" onclick="vipToggleAno('${ano}')">
+        <td style="padding:10px 12px;color:#FFD700;font-weight:700;font-size:14px">
+          <span style="display:inline-block;transition:transform .2s;transform:rotate(${aberto?90:0}deg);margin-right:8px;font-size:12px" id="vip-arrow-${ano}">▶</span>
+          ${ano}
+          <span style="font-size:11px;color:#c8a800;font-weight:400;margin-left:8px">${meses.length} mês${meses.length>1?'es':''}</span>
+        </td>
+        <td style="padding:10px 12px;text-align:right;color:#FFD700;font-weight:700;font-size:14px">${fmtR(totalAno)}</td>
+        <td></td>
+      </tr>`;
+    if (aberto) {
+      for (const r of meses) {
+        html += `
+        <tr style="background:#0a0800;border-bottom:1px solid #1a1200" id="vip-row-${ano}-${r.mes}">
+          <td style="padding:8px 12px 8px 36px;color:#e6c000;font-size:12px">
+            ${_VIP_MESES_NOME[parseInt(r.mes,10)]||r.mes}
+          </td>
+          <td style="padding:8px 12px;text-align:right;color:#FFD700;font-weight:600;font-size:12px">${fmtR(parseFloat(r.valor)||0)}</td>
+          <td style="padding:8px 12px;text-align:right">
+            <button onclick="event.stopPropagation();vipExcluirRegistro('${r.ano}','${r.mes}')" style="background:none;border:1px solid #c00;color:#f55;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px">✕</button>
+          </td>
+        </tr>`;
+      }
+    }
+  }
+
+  html += `
+    </tbody>
+    <tfoot><tr style="background:#1a1100;border-top:2px solid #c8a800">
+      <td style="padding:10px 12px;color:#c8a800;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total Geral</td>
+      <td style="padding:10px 12px;text-align:right;color:#FFD700;font-weight:700;font-size:15px">${fmtR(totalGeral)}</td>
+      <td></td>
+    </tr></tfoot>
+  </table>`;
+
+  el.innerHTML = html;
+}
+
+function vipToggleAno(ano) {
+  if (_vipExpandidos.has(ano)) _vipExpandidos.delete(ano);
+  else _vipExpandidos.add(ano);
+  vipRenderTabela();
+}
+
+async function vipAdicionarRegistro() {
+  const ano = (document.getElementById('vip-novo-ano')?.value||'').trim();
+  const mes = document.getElementById('vip-novo-mes')?.value||'';
+  const valorStr = (document.getElementById('vip-novo-valor')?.value||'').replace(',','.');
+  const valor = parseFloat(valorStr);
+  const msg = document.getElementById('vip-admin-msg');
+  if (!ano || !/^\d{4}$/.test(ano)) { if(msg){msg.style.color='#f55';msg.textContent='Informe um ano válido (ex: 2025).';}return; }
+  if (!mes) { if(msg){msg.style.color='#f55';msg.textContent='Selecione o mês.';}return; }
+  if (isNaN(valor) || valor < 0) { if(msg){msg.style.color='#f55';msg.textContent='Informe um valor válido.';}return; }
+  try {
+    const r = await fetch('http://localhost:3002/api/vip-service', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ ano, mes, valor })
+    });
+    const j = await r.json();
+    if (!j.ok) { if(msg){msg.style.color='#f55';msg.textContent=j.message||'Erro ao salvar.';}return; }
+    const rv = await fetch('http://localhost:3002/api/vip-service');
+    VIP_DATA = await rv.json();
+    vipRenderTabela();
+    atualizarVisualizacoesFaturadas(fdaFiltered);
+    if(msg){ msg.style.color='#22c97b'; msg.textContent='Salvo com sucesso!'; setTimeout(()=>{if(msg){msg.textContent='';msg.style.color='#c8a800';}},2000); }
+    document.getElementById('vip-novo-ano').value='';
+    document.getElementById('vip-novo-valor').value='';
+  } catch { if(msg){msg.style.color='#f55';msg.textContent='Erro: servidor offline.';} }
+}
+
+async function vipExcluirRegistro(ano, mes) {
+  if (!confirm(`Excluir VIP SERVICE ${ano} / ${_VIP_MESES_NOME[parseInt(mes,10)]||mes}?`)) return;
+  try {
+    await fetch(`http://localhost:3002/api/vip-service/${ano}/${mes}`, { method:'DELETE' });
+    const rv = await fetch('http://localhost:3002/api/vip-service');
+    VIP_DATA = await rv.json();
+    vipRenderTabela();
+    atualizarVisualizacoesFaturadas(fdaFiltered);
+  } catch {}
+}
+
 // ── FATURADAS ──
 function atualizarVisualizacoesFaturadas(dados) {
   const vazio = dados.length === 0;
@@ -1682,8 +2529,8 @@ function atualizarVisualizacoesFaturadas(dados) {
   document.getElementById('faturadas-kpis').innerHTML =
     kpiCard('green','Total de Faturas',fmtN(resumo.totalRegistros),'faturas no período','🧾') +
     (resumo.colValor ? kpiCard('blue','Valor Total',fmtR(resumo.somaValor),'soma do período','💲') : '') +
-    (resumo.colValor ? kpiCard('purple','Ticket Médio',fmtR(ticketMedio),'por fatura','📊') : '') +
-    (nFaturas !== null ? kpiCard('orange','Faturas',fmtN(nFaturas),'nº únicos de fatura','📄') : '');
+    kpiVipService() +
+    '';
 
   if(charts['chart-fda-mes']){ charts['chart-fda-mes'].destroy(); delete charts['chart-fda-mes']; }
   if(resumo.colCliente && resumo.colValor){
@@ -1964,6 +2811,310 @@ function buildKpis() {
 // ── CLIENTES TABLE ──
 let cliRows=[], cliFilt=[], cliPage=0;
 function buildClientes() {
+  _ncCliCache = null; // reseta autocomplete quando dados de clientes chegam
+  if (DADOS_REAIS.clientes && DADOS_REAIS.clientes.length > 0) {
+    document.getElementById('cad-sem-dados').style.display = 'none';
+    document.getElementById('cad-dashboard').style.display = '';
+    const empresas = [...new Set(DADOS_REAIS.clientes.map(r => r.EMPRESA_CONTRATO).filter(Boolean))].sort();
+    const sel = document.getElementById('cad-empresa');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todas as Empresas</option>' +
+      empresas.map(e => `<option value="${e}"${e===cur?' selected':''}>${e}</option>`).join('');
+    renderCadastro();
+  } else {
+    document.getElementById('cad-sem-dados').style.display = '';
+    document.getElementById('cad-dashboard').style.display = 'none';
+    _buildClientesRanking();
+  }
+}
+
+function _parseData(val) {
+  if (!val) return null;
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function cadFiltrado() {
+  const empresa = (document.getElementById('cad-empresa') || {}).value || '';
+  return (DADOS_REAIS.clientes || []).filter(r => !empresa || r.EMPRESA_CONTRATO === empresa);
+}
+
+let _cadAtivos = [], cadPage = 0;
+
+function renderCadastro() {
+  const dados = cadFiltrado();
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const d30  = new Date(hoje); d30.setDate(d30.getDate() + 30);
+
+  // Agrupa por COD_CLIENTE_NOVO para eliminar duplicidades
+  const porCod = {};
+  dados.forEach(r => {
+    const cod = String(r.COD_CLIENTE_NOVO || r.CODIGO_CLIENTE_ATUAL || r.CODIGO || '_'+Math.random());
+    if (!porCod[cod]) porCod[cod] = [];
+    porCod[cod].push(r);
+  });
+  const clientes = Object.values(porCod);
+
+  let ativos=0, vencendo30=0, vencidos=0, publico=0, privado=0, sitAtivo=0, sitInativo=0;
+  // Para contrato: considera o TERMINO_CONTRATO mais recente do cliente
+  clientes.forEach(linhas => {
+    const terminos = linhas.map(r => _parseData(r.TERMINO_CONTRATO)).filter(Boolean);
+    const maxT = terminos.length ? new Date(Math.max(...terminos)) : null;
+    if (maxT) {
+      if (maxT >= hoje) { ativos++; if (maxT <= d30) vencendo30++; }
+      else vencidos++;
+    }
+    const r0 = linhas[0];
+    const cat = (r0.CATEGORIA||'').toUpperCase();
+    if (/PUBLI/.test(cat)) publico++; else if (/PRIV/.test(cat)) privado++;
+    const sit = (r0.SITUACAO_CADASTRO||'').toUpperCase();
+    if (/^ATIV/.test(sit)) sitAtivo++; else if (/INAT/.test(sit)) sitInativo++;
+  });
+
+  const total = clientes.length;
+  const K = (cls,label,value,sub,icon) =>
+    `<div class="kpi-card ${cls}"><div class="kpi-label">${label}</div>`+
+    `<div class="kpi-value">${value}</div><div class="kpi-sub">${sub}</div>`+
+    `<div class="kpi-icon">${icon}</div></div>`;
+  const pct = v => total ? ((v/total)*100).toFixed(1)+'%' : '0%';
+
+  document.getElementById('cad-kpis-1').innerHTML =
+    K('blue',  'Total de Clientes',   fmtN(total),      'únicos por COD_CLIENTE_NOVO', '🏢') +
+    K('green', 'Contratos Ativos',    fmtN(ativos),     pct(ativos)+' do total',        '✅') +
+    K('orange','Vencendo em 30 dias', fmtN(vencendo30), 'requer atenção',               '⏰') +
+    K('red',   'Contratos Vencidos',  fmtN(vencidos),   'término no passado',           '❌');
+  document.getElementById('cad-kpis-2').innerHTML =
+    K('blue',  'Clientes Públicos',  fmtN(publico),   pct(publico)+' do total',   '🏛') +
+    K('purple','Clientes Privados',  fmtN(privado),   pct(privado)+' do total',   '🏬') +
+    K('green', 'Cadastro Benner — Ativos',   fmtN(sitAtivo),  pct(sitAtivo)+' do total',  '👤') +
+    K('red',   'Cadastro Benner — Inativos', fmtN(sitInativo),pct(sitInativo)+' do total','🚫');
+
+  // Tabela: um registro por cliente (contrato ativo mais antigo)
+  _cadAtivos = clientes
+    .map(linhas => {
+      const ativas = linhas.filter(r => { const t=_parseData(r.TERMINO_CONTRATO); return t && t>=hoje; });
+      if (!ativas.length) return null;
+      return ativas.sort((a,b) => {
+        const da=_parseData(a.INICIO_CONTRATO), db=_parseData(b.INICIO_CONTRATO);
+        return da&&db ? da-db : da?-1:1;
+      })[0];
+    })
+    .filter(Boolean)
+    .sort((a,b) => {
+      const da=_parseData(a.INICIO_CONTRATO), db=_parseData(b.INICIO_CONTRATO);
+      return da&&db ? da-db : da?-1:1;
+    });
+
+  cadPage = 0;
+  _renderCadPag();
+  _buildFaturistaView(_cadFatProduto);
+  _cadFatTab(_cadFatProduto); // mantém o botão ativo correto
+}
+
+let _cadFatProduto = 'aereo';
+
+function _cadFatTab(produto) {
+  _cadFatProduto = produto;
+  const btnA = document.getElementById('cad-fat-tab-a');
+  const btnT = document.getElementById('cad-fat-tab-t');
+  if (!btnA || !btnT) return;
+  if (produto === 'aereo') {
+    btnA.style.cssText = 'padding:7px 18px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s';
+    btnT.style.cssText = 'padding:7px 18px;border:none;background:none;color:var(--text-dim);cursor:pointer;font-size:12px;transition:all .15s';
+  } else {
+    btnT.style.cssText = 'padding:7px 18px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s';
+    btnA.style.cssText = 'padding:7px 18px;border:none;background:none;color:var(--text-dim);cursor:pointer;font-size:12px;transition:all .15s';
+  }
+  _buildFaturistaView(produto);
+}
+
+function _buildFaturistaView(produto) {
+  const grid = document.getElementById('cad-fat-grid');
+  if (!grid) return;
+
+  const cliDados = cadFiltrado();
+
+  // Enriquecimento: nome/código → { cat, sit }
+  const enrich = {};
+  cliDados.forEach(r => {
+    const k   = (r.RAZAO_SOCIAL || r.CLIENTE || r.NOME_FANTASIA || '').trim().toUpperCase();
+    const cod = String(r.COD_CLIENTE_NOVO || r.CODIGO_CLIENTE_ATUAL || r.CODIGO || '').trim();
+    const obj = { cat: (r.CATEGORIA||'').toUpperCase(), sit: (r.SITUACAO_CADASTRO||'').toUpperCase(),
+                  nome: r.RAZAO_SOCIAL||r.CLIENTE||r.NOME_FANTASIA||'-', cod };
+    if (k)   enrich[k]   = obj;
+    if (cod) enrich[cod] = obj;
+  });
+
+  // Mapa faturista → clientes únicos
+  const porFat = {};
+  const _addCli = (fat, cliKey, obj) => {
+    if (!fat || !cliKey) return;
+    if (!porFat[fat]) porFat[fat] = {};
+    porFat[fat][cliKey] = obj;
+  };
+
+  if (produto === 'aereo') {
+    const temCol = cliDados.length && 'FATURISTA AEREO' in cliDados[0];
+    if (!temCol && DADOS_REAIS.aereo && DADOS_REAIS.aereo.length) {
+      DADOS_REAIS.aereo.forEach(r => {
+        const fat = (r['RESPONSAVEL DOIS ']||r['RESPONSAVEL DOIS']||r.FATURISTA||'').toString().trim()||'SEM FATURISTA';
+        const k   = (r.CLIENTE||'').trim().toUpperCase();
+        _addCli(fat, k, enrich[k] || { nome:r.CLIENTE||'-', cat:'', sit:'', cod:'' });
+      });
+    } else {
+      cliDados.forEach(r => {
+        const fat  = (r['FATURISTA AEREO']||'').toString().trim()||'SEM FATURISTA';
+        const nome = (r.RAZAO_SOCIAL||r.CLIENTE||r.NOME_FANTASIA||'').trim();
+        _addCli(fat, nome.toUpperCase(), { nome, cat:(r.CATEGORIA||'').toUpperCase(),
+          sit:(r.SITUACAO_CADASTRO||'').toUpperCase(), cod:String(r.COD_CLIENTE_NOVO||r.CODIGO_CLIENTE_ATUAL||r.CODIGO||'').trim() });
+      });
+    }
+  } else {
+    const temCol = cliDados.length && 'FATURISTA TERRESTRE' in cliDados[0];
+    if (temCol) {
+      cliDados.forEach(r => {
+        const fat  = (r['FATURISTA TERRESTRE']||'').toString().trim()||'SEM FATURISTA';
+        const nome = (r.RAZAO_SOCIAL||r.CLIENTE||r.NOME_FANTASIA||'').trim();
+        _addCli(fat, nome.toUpperCase(), { nome, cat:(r.CATEGORIA||'').toUpperCase(),
+          sit:(r.SITUACAO_CADASTRO||'').toUpperCase(), cod:String(r.COD_CLIENTE_NOVO||r.CODIGO_CLIENTE_ATUAL||r.CODIGO||'').trim() });
+      });
+    } else if (DADOS_REAIS.terrestre && DADOS_REAIS.terrestre.length) {
+      DADOS_REAIS.terrestre.forEach(r => {
+        const fat = (r['RESPONSAVEL DOIS ']||r['RESPONSAVEL DOIS']||r.FATURISTA||'').toString().trim()||'SEM FATURISTA';
+        const k   = (r.CLIENTE||'').trim().toUpperCase();
+        _addCli(fat, k, enrich[k] || { nome:r.CLIENTE||'-', cat:'', sit:'', cod:'' });
+      });
+    } else {
+      grid.innerHTML = `<div style="color:var(--text-dim);font-size:13px;padding:12px 0">Carregar dados Terrestres em Administração para ver esta visão.</div>`;
+      return;
+    }
+  }
+
+  if (!Object.keys(porFat).length) {
+    grid.innerHTML = `<div style="color:var(--text-dim);font-size:13px;padding:12px 0">Nenhum faturista encontrado.</div>`;
+    return;
+  }
+
+  const accentA = '#4e6ef2', accentT = '#a78bfa';
+  const accent  = produto === 'aereo' ? accentA : accentT;
+
+  const _chip = (label, val, color) =>
+    `<div style="display:flex;flex-direction:column;align-items:center;min-width:54px;padding:6px 10px;border-radius:8px;background:var(--surface2)">
+       <span style="font-size:15px;font-weight:700;color:${color};line-height:1">${val}</span>
+       <span style="font-size:10px;color:var(--text-dim);margin-top:2px;white-space:nowrap">${label}</span>
+     </div>`;
+
+  const _badge = (txt, bg, fg) =>
+    `<span style="font-size:10px;background:${bg};color:${fg};padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap">${txt}</span>`;
+  const _catBadge = cat => /PUBLI/.test(cat) ? _badge('PÚBLICO','rgba(96,165,250,.15)','#60a5fa')
+                         : /PRIV/.test(cat)  ? _badge('PRIVADO','rgba(167,139,250,.15)','#a78bfa')
+                         : _badge(cat||'—','var(--surface2)','var(--text-dim)');
+  const _sitBadge = sit => /^ATIV/.test(sit) ? _badge('ATIVO','rgba(52,211,153,.15)','#34d399')
+                         : /INAT/.test(sit)  ? _badge('INATIVO','rgba(248,113,113,.15)','#f87171')
+                         : _badge(sit||'—','var(--surface2)','var(--text-dim)');
+
+  const entries = Object.entries(porFat).sort((a,b) => Object.keys(b[1]).length - Object.keys(a[1]).length);
+
+  grid.innerHTML = entries.map(([fat, cliMap], idx) => {
+    const clis    = Object.values(cliMap);
+    const total   = clis.length;
+    const publico = clis.filter(c => /PUBLI/.test(c.cat)).length;
+    const privado = clis.filter(c => /PRIV/.test(c.cat)).length;
+    const ativo   = clis.filter(c => /^ATIV/.test(c.sit)).length;
+    const inativo = clis.filter(c => /INAT/.test(c.sit)).length;
+    const uid     = 'fat_' + idx + '_' + fat.replace(/\W/g,'_').slice(0,20);
+    const pctAtivo = total ? Math.round((ativo/total)*100) : 0;
+
+    const clientesTags = clis.sort((a,b) => a.nome.localeCompare(b.nome)).map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;
+                  border-radius:7px;background:var(--surface2);gap:10px">
+        <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+          <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.nome}">${c.nome.substring(0,36)}</span>
+          ${c.cod ? `<span style="font-size:10px;color:var(--text-dim);font-family:monospace">${c.cod}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">${_catBadge(c.cat)} ${_sitBadge(c.sit)}</div>
+      </div>`).join('');
+
+    return `
+      <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);
+                  transition:box-shadow .18s" onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,.25)'" onmouseout="this.style.boxShadow='none'">
+
+        <!-- Cabeçalho da linha -->
+        <div onclick="const b=document.getElementById('${uid}');const open=b.style.display!=='none';b.style.display=open?'none':'block';
+                      this.querySelector('.fat-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';"
+             style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;
+                    border-left:4px solid ${accent};background:var(--surface)">
+
+          <!-- Avatar inicial -->
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,${accent}40,${accent}20);
+                      border:1px solid ${accent}50;display:flex;align-items:center;justify-content:center;
+                      font-weight:700;font-size:13px;color:${accent};flex-shrink:0">${fat.charAt(0).toUpperCase()}</div>
+
+          <!-- Nome + subtítulo -->
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fat}</div>
+            <div style="font-size:11px;color:var(--text-dim)">${total} cliente${total!==1?'s':''}</div>
+          </div>
+
+          <!-- Mini chips de stats -->
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            ${_chip('Públicos', publico, '#60a5fa')}
+            ${_chip('Privados', privado, '#a78bfa')}
+            ${_chip('Ativos',   ativo,   '#34d399')}
+            ${_chip('Inativos', inativo, '#f87171')}
+          </div>
+
+          <!-- Barra de progresso ativos -->
+          <div style="width:80px;flex-shrink:0">
+            <div style="font-size:10px;color:var(--text-dim);text-align:right;margin-bottom:3px">${pctAtivo}% ativos</div>
+            <div style="background:var(--surface2);border-radius:4px;height:5px;overflow:hidden">
+              <div style="width:${pctAtivo}%;height:100%;background:linear-gradient(90deg,${accent},#34d399);border-radius:4px;transition:width .4s"></div>
+            </div>
+          </div>
+
+          <!-- Chevron -->
+          <div class="fat-chevron" style="color:var(--text-dim);font-size:12px;transition:transform .2s;flex-shrink:0">▼</div>
+        </div>
+
+        <!-- Lista expandível de clientes -->
+        <div id="${uid}" style="display:none;background:var(--surface2);border-top:1px solid var(--border)">
+          <div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">
+            ${clientesTags}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function _renderCadPag() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const d30  = new Date(hoje); d30.setDate(d30.getDate()+30);
+  const fmtDt = d => d ? d.toLocaleDateString('pt-BR') : '-';
+  const start = cadPage * PAGE_SZ;
+  document.getElementById('cad-tbody').innerHTML = _cadAtivos.slice(start, start+PAGE_SZ).map((r,i) => {
+    const ini = _parseData(r.INICIO_CONTRATO), fim = _parseData(r.TERMINO_CONTRATO);
+    const anos = ini ? ((Date.now()-ini)/(1000*60*60*24*365.25)).toFixed(1) : '-';
+    const alerta = fim && fim<=d30;
+    const nome = r.RAZAO_SOCIAL||r.CLIENTE||r.NOME_FANTASIA||'-';
+    return `<tr>
+      <td style="color:var(--text-dim)">${start+i+1}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${nome}">${nome.substring(0,40)}</td>
+      <td style="font-size:11px">${r.EMPRESA_CONTRATO||'-'}</td>
+      <td><span style="font-size:11px;background:var(--surface2);padding:2px 6px;border-radius:4px">${r.CATEGORIA||'-'}</span></td>
+      <td>${fmtDt(ini)}</td>
+      <td style="${alerta?'color:var(--warning);font-weight:700':''}">${fmtDt(fim)}${alerta?' ⏰':''}</td>
+      <td style="text-align:right;font-weight:700">${anos}</td>
+      <td style="font-size:11px">${r['FATURISTA AEREO']||'-'}</td>
+      <td style="font-size:11px">${r.SITUACAO_CADASTRO||'-'}</td>
+    </tr>`;
+  }).join('');
+  renderPager('cad', _cadAtivos.length, cadPage, v => { cadPage=v; _renderCadPag(); });
+  document.getElementById('cad-info').textContent = `${_cadAtivos.length} cliente(s) com contrato ativo`;
+}
+
+// ── RANKING de não faturados (fallback quando DADOS_REAIS.clientes ainda não carregado) ──
+function _buildClientesRanking() {
   const map={};
   RAW_DATA.forEach(r=>{
     const k=r.CLIENTE||'';
@@ -2000,43 +3151,231 @@ function renderCli(){
   document.getElementById('cli-info').textContent=`${cliFilt.length} clientes`;
 }
 
-// ── RESPONSÁVEIS TABLE ──
-let respRows=[], respFilt=[], respPage=0;
-function buildResp(){
-  const map={};
-  RAW_DATA.forEach(r=>{
-    const k=r.RESPONSAVEL||'';
-    if(!map[k]) map[k]={resp:k,qtd:0,tot:0,aereo:0,terr:0,nf:0,pf:0};
-    map[k].qtd++;
-    map[k].tot+=num(r.TOTAL);
-    if(isAereo(r)) map[k].aereo+=num(r.TOTAL);
-    if(isTerr(r)) map[k].terr+=num(r.TOTAL);
-    if(r.STATUS_FATURAMENTO==='Nao Faturado') map[k].nf+=num(r.TOTAL);
-    if(r.STATUS_FATURAMENTO==='Pré-Fatura') map[k].pf+=num(r.TOTAL);
+// ── RESPONSÁVEIS — DASHBOARD UNIFICADO (Aéreo + Terrestre + Faturadas) ──
+let respRows=[], respFilt=[], respPage=0, _respCardFiltro=null, _respChart=null;
+
+// Normaliza dados das 3 fontes para linhas {resp, produto, nf, pf, dev, total, mes}
+function _getRespLinhas() {
+  const linhas = [];
+  const mesFrom = (val) => {
+    if (!val) return '';
+    const s = String(val);
+    // DD/MM/YYYY → MM/YYYY
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s.slice(3);
+    // YYYY-MM-DD ou ISO → MM/YYYY
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    return s.slice(0,7); // qualquer outra coisa
+  };
+
+  // ─ AÉREO ─
+  if (DADOS_REAIS.aereo && DADOS_REAIS.aereo.length) {
+    DADOS_REAIS.aereo.forEach(r => {
+      const resp  = r['RESPONSAVEL DOIS'] || r.FATURISTA || r.RESPONSAVEL || '';
+      const total = num(r.TOTAL);
+      const isPend = (r.TIPO||'').startsWith('2-');
+      const isPF   = r.STATUS_FATURAMENTO === 'Pré-Fatura';
+      linhas.push({ resp, produto:'aereo',
+        nf: !isPend && !isPF ? total : 0,
+        pf: isPF ? total : 0,
+        dev: isPend ? total : 0,
+        total, mes: mesFrom(r.MES_EMISSAO) });
+    });
+  } else {
+    RAW_DATA.filter(isAereo).forEach(r => {
+      const resp  = r['RESPONSAVEL DOIS'] || r.RESPONSAVEL || '';
+      const total = num(r.TOTAL);
+      const sf    = r.STATUS_FATURAMENTO || '';
+      linhas.push({ resp, produto:'aereo',
+        nf: sf==='Nao Faturado' ? total : 0,
+        pf: sf==='Pré-Fatura'  ? total : 0,
+        dev: 0, total, mes: mesFrom(r.MES_EMISSAO) });
+    });
+  }
+
+  // ─ TERRESTRE ─
+  if (DADOS_REAIS.terrestre && DADOS_REAIS.terrestre.length) {
+    DADOS_REAIS.terrestre.forEach(r => {
+      const resp = r['RESPONSAVEL DOIS'] || '';
+      const nf   = num(r.Faturar), pf = num(r.Pre), dev = num(r.devolvido);
+      const total = num(r.Total);
+      linhas.push({ resp, produto:'terrestre', nf, pf, dev, total,
+        mes: mesFrom(r['DT CONCILIACAO']||r['DT EMISSAO']||r['MES CONCILIACAO']||'') });
+    });
+  } else {
+    RAW_DATA.filter(isTerr).forEach(r => {
+      const resp  = r['RESPONSAVEL DOIS'] || r.RESPONSAVEL || '';
+      const total = num(r.TOTAL);
+      const sf    = r.STATUS_FATURAMENTO || '';
+      linhas.push({ resp, produto:'terrestre',
+        nf: sf==='Nao Faturado' ? total : 0,
+        pf: sf==='Pré-Fatura'  ? total : 0,
+        dev: 0, total, mes: mesFrom(r.MES_EMISSAO) });
+    });
+  }
+
+  return linhas;
+}
+
+function buildResp() {
+  const todasLinhas = _getRespLinhas();
+
+  // Popula filtro de responsável
+  const todosResps = [...new Set(todasLinhas.map(l=>l.resp).filter(Boolean))].sort();
+  const sel = document.getElementById('resp-filtro-resp');
+  const selVal = sel ? sel.value : '';
+  if (sel) {
+    sel.innerHTML = '<option value="">Todos os Responsáveis</option>' +
+      todosResps.map(r=>`<option value="${r}"${r===selVal?' selected':''}>${r}</option>`).join('');
+  }
+
+  // Aplica filtro de responsável
+  const linhas = selVal ? todasLinhas.filter(l=>l.resp===selVal) : todasLinhas;
+
+  // Totais para cards
+  const totNFAereo = linhas.filter(l=>l.produto==='aereo').reduce((s,l)=>s+l.nf,0);
+  const totNFTerr  = linhas.filter(l=>l.produto==='terrestre').reduce((s,l)=>s+l.nf,0);
+  const totPF      = linhas.reduce((s,l)=>s+l.pf,0);
+  const totDev     = linhas.reduce((s,l)=>s+l.dev,0);
+
+  // Cards interativos (clique filtra a tabela)
+  const K = (id,cls,label,val,sub,icon) => {
+    const ativo = _respCardFiltro===id ? 'outline:2px solid var(--primary);' : '';
+    return `<div class="kpi-card ${cls}" style="cursor:pointer;${ativo}" onclick="filtrarCardResp('${id}')">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value">${fmtR(val)}</div>
+      <div class="kpi-sub">${sub}</div>
+      <div class="kpi-icon">${icon}</div>
+    </div>`;
+  };
+  document.getElementById('resp-kpis').innerHTML =
+    K('nf_aereo','red',   'Não Faturado Aéreo',    totNFAereo,'A Faturar — Aéreo',    '✈') +
+    K('nf_terr', 'orange','Não Faturado Terrestre', totNFTerr, 'A Faturar — Terrestre','🚌')+
+    K('pf',      'green', 'Pré-Fatura',             totPF,     'Aereo + Terrestre',    '📋')+
+    K('dev',     'purple','Devolvido',               totDev,    'Aereo + Terrestre',    '↩');
+
+  // Agrupa por responsável para a tabela
+  const map = {};
+  linhas.forEach(l => {
+    const k = l.resp || 'SEM RESPONSÁVEL';
+    if (!map[k]) map[k] = { resp:k, nf_aereo:0, nf_terr:0, pf:0, dev:0, total:0 };
+    if (l.produto==='aereo') map[k].nf_aereo += l.nf; else map[k].nf_terr += l.nf;
+    map[k].pf    += l.pf;
+    map[k].dev   += l.dev;
+    map[k].total += l.total;
   });
-  respRows=Object.values(map).sort((a,b)=>b.tot-a.tot);
-  respFilt=[...respRows];respPage=0;renderResp();
+  respRows = Object.values(map).sort((a,b)=>b.total-a.total);
+
+  // Aplica filtro de card ativo
+  _aplicarFiltroCard();
+
+  // Gráfico de linha
+  _buildRespChart(linhas);
 }
-function filterResp(){
-  const q=(document.getElementById('resp-q').value||'').toLowerCase();
-  respFilt=respRows.filter(r=>!q||r.resp.toLowerCase().includes(q));
-  respPage=0;renderResp();
+
+function filtrarCardResp(tipo) {
+  _respCardFiltro = _respCardFiltro === tipo ? null : tipo;
+  // Reatualiza destaque dos cards sem re-fetch
+  buildResp();
 }
-function renderResp(){
-  const start=respPage*PAGE_SZ;
-  document.getElementById('resp-tbody').innerHTML=respFilt.slice(start,start+PAGE_SZ).map((r,i)=>`
+
+function _aplicarFiltroCard() {
+  let rows = respRows;
+  if (_respCardFiltro === 'nf_aereo') rows = rows.filter(r=>r.nf_aereo>0);
+  else if (_respCardFiltro === 'nf_terr') rows = rows.filter(r=>r.nf_terr>0);
+  else if (_respCardFiltro === 'pf')      rows = rows.filter(r=>r.pf>0);
+  else if (_respCardFiltro === 'dev')     rows = rows.filter(r=>r.dev>0);
+  const q = (document.getElementById('resp-q')||{}).value||'';
+  respFilt = q ? rows.filter(r=>r.resp.toLowerCase().includes(q.toLowerCase())) : rows;
+  respPage = 0;
+  renderResp();
+}
+
+function filterResp() {
+  _aplicarFiltroCard();
+}
+
+function _buildRespChart(linhas) {
+  const CORES = [
+    '#4e6ef2','#f59e0b','#10b981','#ef4444','#a78bfa','#06b6d4',
+    '#f97316','#84cc16','#ec4899','#14b8a6','#fb923c','#e879f9','#38bdf8','#a3e635'
+  ];
+
+  // Agrupa NF total (aéreo + terrestre) por faturista × mês
+  const porResp = {};
+  const mesesSet = new Set();
+  linhas.forEach(l => {
+    if (!l.mes || !l.nf) return;
+    const k = l.resp || 'SEM RESP.';
+    if (!porResp[k]) porResp[k] = {};
+    porResp[k][l.mes] = (porResp[k][l.mes] || 0) + l.nf;
+    mesesSet.add(l.mes);
+  });
+
+  const toNum = s => { const p = s.split('/'); return (parseInt(p[1]||0)*100) + parseInt(p[0]||0); };
+  const labels = [...mesesSet].sort((a,b) => toNum(a) - toNum(b));
+  const faturistas = Object.keys(porResp).sort();
+
+  const datasets = faturistas.map((resp, i) => ({
+    label: resp,
+    data: labels.map(m => porResp[resp][m] || 0),
+    borderColor: CORES[i % CORES.length],
+    backgroundColor: 'transparent',
+    tension: 0.35,
+    fill: false,
+    pointRadius: 3,
+    borderWidth: 2,
+  }));
+
+  const ctx = document.getElementById('chart-resp-linha');
+  if (!ctx) return;
+  if (_respChart) { _respChart.destroy(); _respChart = null; }
+  _respChart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color:'#c8d0e0', font:{size:11}, boxWidth:12, padding:10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${fmtR(ctx.parsed.y)}`
+          }
+        }
+      },
+      scales: {
+        x: { ticks:{ color:'#8892a4', maxRotation:45 }, grid:{ color:'rgba(255,255,255,0.05)' } },
+        y: { ticks:{ color:'#8892a4', callback: v => fmtR(v) }, grid:{ color:'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+}
+
+function renderResp() {
+  const start = respPage * PAGE_SZ;
+  document.getElementById('resp-tbody').innerHTML = respFilt.slice(start, start+PAGE_SZ).map((r,i) => `
     <tr>
-      <td style="color:var(--text-dim)">${start+i+1}</td>
-      <td>${r.resp.substring(0,30)}</td>
-      <td style="text-align:right">${r.qtd}</td>
-      <td style="text-align:right;font-weight:700">${fmtR(r.tot)}</td>
-      <td style="text-align:right;color:var(--primary)">${fmtR(r.aereo)}</td>
-      <td style="text-align:right;color:var(--warning)">${fmtR(r.terr)}</td>
-      <td style="text-align:right;color:var(--danger)">${fmtR(r.nf)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-weight:600" title="${r.resp}">${r.resp.substring(0,35)}</td>
+      <td style="text-align:right;color:var(--danger)">${fmtR(r.nf_aereo)}</td>
+      <td style="text-align:right;color:var(--warning)">${fmtR(r.nf_terr)}</td>
       <td style="text-align:right;color:var(--success)">${fmtR(r.pf)}</td>
+      <td style="text-align:right;color:#a78bfa">${fmtR(r.dev)}</td>
+      <td style="text-align:right;font-weight:700">${fmtR(r.total)}</td>
     </tr>`).join('');
-  renderPager('resp',respFilt.length,respPage,v=>{respPage=v;renderResp();});
-  document.getElementById('resp-info').textContent=`${respFilt.length} responsáveis`;
+
+  // Totais do rodapé
+  const som = f => respFilt.reduce((s,r)=>s+r[f],0);
+  document.getElementById('resp-tot-nfa').textContent = fmtR(som('nf_aereo'));
+  document.getElementById('resp-tot-nft').textContent = fmtR(som('nf_terr'));
+  document.getElementById('resp-tot-pf').textContent  = fmtR(som('pf'));
+  document.getElementById('resp-tot-dev').textContent = fmtR(som('dev'));
+  document.getElementById('resp-tot-tot').textContent = fmtR(som('total'));
+
+  renderPager('resp', respFilt.length, respPage, v=>{ respPage=v; renderResp(); });
+  document.getElementById('resp-info').textContent = `${respFilt.length} responsáveis`;
 }
 
 // ── FATURISTAS TABLE ──
@@ -2294,6 +3633,8 @@ function renderSus() {
 
 // ── ADMIN PAGE ──
 function buildAdmin(){
+  _admCarregarPerfis();
+  _admCarregarUsuarios();
   const saved = JSON.parse(localStorage.getItem('benner_conn')||'{}');
   if(saved.servidor) {
     document.getElementById('adm-servidor').value=saved.servidor||'';
@@ -2308,6 +3649,7 @@ function buildAdmin(){
   document.getElementById('adm-query-aereo').value = localStorage.getItem('benner_query_aereo') || '';
   document.getElementById('adm-query-terrestre').value = localStorage.getItem('benner_query_terrestre') || '';
   document.getElementById('adm-query-faturadas').value = localStorage.getItem('benner_query_faturadas') || '';
+  document.getElementById('adm-query-clientes').value  = localStorage.getItem('benner_query_clientes')  || '';
   document.getElementById('adm-info').innerHTML = `
     <div>📅 <b>Data do relatório:</b> ${new Date().toLocaleDateString('pt-BR')}</div>
     <div>📋 <b>Total de registros:</b> ${RAW_DATA.length}</div>
@@ -2318,6 +3660,171 @@ function buildAdmin(){
     <div>🏢 <b>Clientes únicos:</b> ${new Set(RAW_DATA.map(r=>r.CLIENTE).filter(Boolean)).size}</div>
     <div>🧾 <b>Faturistas:</b> ${new Set(RAW_DATA.map(r=>r.FATURISTA).filter(Boolean)).size}</div>
   `;
+  vipRenderTabela();
+  _buildAdminEmail();
+}
+
+// ── ALERTAS DE E-MAIL ──────────────────────────────────────────────────────
+async function _buildAdminEmail() {
+  try {
+    const r = await fetch('http://localhost:3002/api/email-config');
+    const d = await r.json();
+    if (d.graph) {
+      document.getElementById('adm-graph-tenant').value = d.graph.tenantId  || '';
+      document.getElementById('adm-graph-client').value = d.graph.clientId  || '';
+      document.getElementById('adm-graph-from').value   = d.graph.fromEmail || '';
+    }
+    const cs = document.getElementById('adm-cert-status');
+    if (cs) { cs.textContent = d.certOk ? '🟢 cert-sendmail.pfx encontrado' : '🔴 cert-sendmail.pfx não encontrado na pasta do projeto'; cs.style.color = d.certOk ? '#4ade80' : '#f87171'; }
+    if (d.cron) {
+      document.getElementById('adm-cron-servidor').value = d.cron.servidor || '';
+      document.getElementById('adm-cron-porta').value    = d.cron.porta    || '1433';
+      document.getElementById('adm-cron-banco').value    = d.cron.banco    || '';
+      document.getElementById('adm-cron-usuario').value  = d.cron.usuario  || '';
+    }
+    if (d.ultimoLog) document.getElementById('adm-email-log').textContent = d.ultimoLog;
+    _admEmailRenderLista(d.emails || {});
+    const el = document.getElementById('adm-email-cron-status');
+    el.textContent = d.cronAtivo ? '✅ Cron ativo (7h00)' : '⚠ Configuração incompleta';
+    el.style.color = d.cronAtivo ? '#4ade80' : '#fbbf24';
+  } catch {
+    const el = document.getElementById('adm-email-cron-status');
+    if (el) { el.textContent = '❌ Servidor offline'; el.style.color = '#f87171'; }
+  }
+}
+
+function _admEmailRenderLista(emails) {
+  const el = document.getElementById('adm-email-lista');
+  const entries = Object.entries(emails);
+  if (!entries.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:4px 0">Nenhum faturista cadastrado ainda. Clique em "+ Adicionar".</div>';
+    return;
+  }
+  el.innerHTML = entries.map(([fat, info]) => {
+    const email  = typeof info === 'string' ? info : (info.email  || '—');
+    const teams  = typeof info === 'string' ? ''   : (info.teams  || '');
+    return `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0">${fat.charAt(0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:#e8eaf6;margin-bottom:3px">${fat}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:12px;color:var(--text-dim)">✉ ${email}</span>
+          ${teams ? `<span style="font-size:11px;background:rgba(98,100,167,.2);color:#a5a8ff;border:1px solid #6264a7;border-radius:4px;padding:1px 7px">🟣 Teams configurado</span>` : `<span style="font-size:11px;color:var(--text-dim);opacity:.5">🟣 Teams não configurado</span>`}
+        </div>
+      </div>
+      <button onclick="_admEmailRemover(${JSON.stringify(fat)})" style="background:none;border:1px solid var(--danger);color:var(--danger);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+async function _admEmailSalvar() {
+  const pin = prompt('PIN de Administrador:');
+  if (!pin) return;
+  const body = {
+    pin,
+    graph: {
+      tenantId:  document.getElementById('adm-graph-tenant').value.trim(),
+      clientId:  document.getElementById('adm-graph-client').value.trim(),
+      fromEmail: document.getElementById('adm-graph-from').value.trim(),
+      pfxPass:   document.getElementById('adm-graph-pfxpass').value,
+    },
+    cron: {
+      servidor: document.getElementById('adm-cron-servidor').value.trim(),
+      porta:    document.getElementById('adm-cron-porta').value.trim(),
+      banco:    document.getElementById('adm-cron-banco').value.trim(),
+      usuario:  document.getElementById('adm-cron-usuario').value.trim(),
+      senha:    document.getElementById('adm-cron-senha').value,
+    },
+  };
+  try {
+    const r = await fetch('http://localhost:3002/api/email-config', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    const msg = document.getElementById('adm-smtp-msg');
+    msg.textContent = d.ok ? '✅ Configuração salva.' : '❌ ' + d.message;
+    msg.style.color = d.ok ? '#4ade80' : '#f87171';
+    if (d.ok) _buildAdminEmail();
+  } catch {
+    document.getElementById('adm-smtp-msg').textContent = '❌ Servidor offline.';
+    document.getElementById('adm-smtp-msg').style.color = '#f87171';
+  }
+}
+
+async function _admEmailTestarSmtp() {
+  const msg = document.getElementById('adm-smtp-msg');
+  msg.textContent = '⏳ Enviando e-mail de teste...'; msg.style.color = 'var(--text-dim)';
+  try {
+    const dest = document.getElementById('adm-graph-from').value.trim();
+    const r = await fetch('http://localhost:3002/api/email-testar', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ destinatario: dest })
+    });
+    const d = await r.json();
+    msg.textContent = d.ok ? `✅ E-mail de teste enviado para ${dest}!` : '❌ ' + d.message;
+    msg.style.color = d.ok ? '#4ade80' : '#f87171';
+  } catch {
+    msg.textContent = '❌ Servidor offline.'; msg.style.color = '#f87171';
+  }
+}
+
+function _admEmailCopiarConnErp() {
+  document.getElementById('adm-cron-servidor').value = document.getElementById('adm-servidor').value;
+  document.getElementById('adm-cron-porta').value    = document.getElementById('adm-porta').value;
+  document.getElementById('adm-cron-banco').value    = document.getElementById('adm-banco').value;
+  document.getElementById('adm-cron-usuario').value  = document.getElementById('adm-usuario').value;
+  document.getElementById('adm-cron-senha').value    = document.getElementById('adm-senha').value;
+}
+
+async function _admEmailNovoFaturista() {
+  const fat = prompt('Nome do Faturista (exatamente como aparece em "Responsável Dois"):');
+  if (!fat || !fat.trim()) return;
+  const email = prompt(`E-mail de ${fat.trim()}:`);
+  if (!email || !email.trim()) return;
+  const teams = prompt(`URL do Webhook Teams de ${fat.trim()} (opcional — deixe em branco para pular):`);
+  const pin = prompt('PIN de Administrador:');
+  if (!pin) return;
+  try {
+    const r = await fetch('http://localhost:3002/api/email-faturistas', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ pin, faturista: fat.trim(), email: email.trim(), teams: (teams || '').trim() })
+    });
+    const d = await r.json();
+    if (d.ok) _admEmailRenderLista(d.emails);
+    else alert('❌ ' + d.message);
+  } catch { alert('❌ Servidor offline.'); }
+}
+
+async function _admTeamsTestar() {
+  const msg = document.getElementById('adm-smtp-msg');
+  const fat = prompt('Nome do Faturista para testar o Teams:');
+  if (!fat) return;
+  msg.textContent = '⏳ Enviando card de teste ao Teams...'; msg.style.color = 'var(--text-dim)';
+  try {
+    const r = await fetch('http://localhost:3002/api/teams-testar', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ faturista: fat.trim() })
+    });
+    const d = await r.json();
+    msg.textContent = d.ok ? `✅ Card Teams enviado para "${fat}"!` : '❌ ' + d.message;
+    msg.style.color = d.ok ? '#4ade80' : '#f87171';
+  } catch {
+    msg.textContent = '❌ Servidor offline.'; msg.style.color = '#f87171';
+  }
+}
+
+async function _admEmailRemover(fat) {
+  const pin = prompt(`PIN de Administrador para remover "${fat}":`);
+  if (!pin) return;
+  try {
+    const r = await fetch('http://localhost:3002/api/email-faturistas/' + encodeURIComponent(fat), {
+      method: 'DELETE', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ pin })
+    });
+    const d = await r.json();
+    if (d.ok) _admEmailRenderLista(d.emails);
+    else alert('❌ ' + d.message);
+  } catch { alert('❌ Servidor offline.'); }
 }
 
 // Item pedido: "salvar e memorizar informações do banco de dados" — agora
@@ -2377,6 +3884,7 @@ function showQueryStatus(tipo,type,msg){
 function saveQuery(tipo,silencioso){
   const valor = document.getElementById('adm-query-'+tipo).value;
   localStorage.setItem('benner_query_'+tipo, valor);
+  fetch('http://localhost:3002/api/queries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({[tipo]:valor})}).catch(()=>{});
   if(!silencioso) showQueryStatus(tipo,'ok','✅ Consulta salva com sucesso!');
   else showQueryStatus(tipo,'ok','💾 Salvo automaticamente');
 }
@@ -2499,14 +4007,35 @@ function restaurarFiltros(...ids) {
   });
 }
 
+// Reconstrói abas que dependem dos dados que acabaram de chegar.
+// Chamada sempre que carregarDadosReais ou autoRunSavedQueries popula DADOS_REAIS[tipo].
+function _refreshDependentes(tipo) {
+  if (tipo === 'aereo' || tipo === 'terrestre') {
+    // Responsáveis usa aereo+terrestre combinados — deve re-renderizar quando qualquer um chega
+    try { buildResp(); } catch(e) {}
+    // Divergentes e Suspensas também dependem desses dados
+    try { if(PAGE_BUILDERS['divergentes']) PAGE_BUILDERS['divergentes'](); } catch(e) {}
+    try { if(PAGE_BUILDERS['suspensas'])   PAGE_BUILDERS['suspensas']();   } catch(e) {}
+    try { if(PAGE_BUILDERS['kpis'])        PAGE_BUILDERS['kpis']();        } catch(e) {}
+    // Visão por faturista na aba Clientes: reconstruir se a aba terrestre estiver ativa
+    try { if (document.getElementById('cad-fat-grid')) _buildFaturistaView(_cadFatProduto); } catch(e) {}
+    // Calendário de faturamento: recalcular quando dados chegam
+    try { if (document.getElementById('cal-container')) _renderCalendario(); } catch(e) {}
+  }
+  if (tipo === 'clientes') {
+    try { buildClientes(); } catch(e) {}
+  }
+}
+
 // ── AUTO-EXECUÇÃO DAS ÚLTIMAS CONSULTAS ──
 async function autoRunSavedQueries() {
-  for(const tipo of ['aereo','terrestre','faturadas']) {
+  for(const tipo of ['aereo','terrestre','faturadas','clientes']) {
     if(!localStorage.getItem('benner_query_'+tipo)) continue;
     const cache = await _DB.ler(tipo);
     if(cache && Array.isArray(cache.dados) && cache.dados.length > 0) {
       DADOS_REAIS[tipo] = cache.dados;
       if(PAGE_BUILDERS[tipo]) PAGE_BUILDERS[tipo]();
+      _refreshDependentes(tipo);
       const quando = new Date(cache.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       showQueryStatus(tipo,'ok',`📦 ${fmtN(cache.dados.length)} linha(s) do cache local (${quando}) — clique em 🔄 Atualizar para buscar novos dados.`);
     } else {
@@ -2516,9 +4045,28 @@ async function autoRunSavedQueries() {
   }
 }
 
-function init() {
+async function init() {
   document.getElementById('last-update').textContent =
     'Dados: ' + new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  // Sincronização bidirecional de queries com o servidor (queries.json):
+  // — Se localStorage tem query: envia ao servidor (garante que edições feitas
+  //   com servidor desligado não se percam ao limpar cache).
+  // — Se localStorage está vazio: recebe do servidor (restaura após limpeza de cache).
+  // Resultado: a versão mais recente é sempre preservada em ambos os lados.
+  try {
+    const rv = await fetch('http://localhost:3002/api/vip-service');
+    VIP_DATA = await rv.json();
+  } catch {}
+  try {
+    const r = await fetch('http://localhost:3002/api/queries');
+    const q = await r.json();
+    // Servidor sempre prevalece: .sql files são a fonte de verdade
+    for (const tipo of ['aereo','terrestre','faturadas','clientes']) {
+      if (q[tipo]) {
+        localStorage.setItem('benner_query_'+tipo, q[tipo]);
+      }
+    };
+  } catch {}
   buildAereo();
   buildTerr();
   buildFaturadas();
@@ -2530,6 +4078,9 @@ function init() {
   buildDivergentes();
   buildSuspensas();
   buildAdmin();
+  buildNaoConf();
+  _authInit();
+  buildCalendario();
   autoRunSavedQueries();
 }
 
@@ -2538,12 +4089,686 @@ function init() {
 // de novo inteiro) — isso zerava os selects de filtro de toda aba já
 // visitada (Aéreo, Terrestre, Faturadas, Clientes...), não só da que
 // estava sendo vista. Agora só refaz a página que está ativa no momento.
+// ══════════════════════════════════════════════════════════════════════════════
+// NÃO CONFORMIDADE
+// ══════════════════════════════════════════════════════════════════════════════
+let _NC_DATA = [];
+let _NC_MOTIVOS_CUSTOM = [];
+let _ncPage = 0;
+
+const _NC_MOTIVOS_DEFAULT = [
+  'Devolução de faturas',
+  'Mudança no processo de Faturamento',
+  'Solicitação de Documentos Suporte',
+  'Solicitações de reuniões para alinhamento',
+  'Correções de campos Gerenciais ONLINE',
+  'Correções de vendas Campos Gerenciais OFFLINE',
+  'Prorrogação de vencimento',
+];
+
+async function buildNaoConf() {
+  _ncPopularMotivos(); // padrões aparecem imediatamente, antes do fetch
+  try {
+    const r = await fetch('http://localhost:3002/api/nao-conformidades');
+    const d = await r.json();
+    _NC_DATA = d.registros || [];
+    _NC_MOTIVOS_CUSTOM = d.motivosCustom || [];
+  } catch {
+    _NC_DATA = JSON.parse(localStorage.getItem('nc_data_local') || '[]');
+  }
+  _ncPopularClientes();
+  _ncPopularMotivos(); // atualiza com motivos customizados do servidor
+  _ncRenderTabela();
+}
+
+let _ncCliCache = null;
+
+function _ncListaClientes() {
+  if (_ncCliCache) return _ncCliCache;
+  if (!DADOS_REAIS.clientes || !DADOS_REAIS.clientes.length) return [];
+  const seen = new Set();
+  _ncCliCache = [];
+  DADOS_REAIS.clientes.forEach(r => {
+    const cod = String(r.COD_CLIENTE_NOVO || r.CODIGO || '').trim();
+    const nom = String(r.CLIENTE || r.RAZAO_SOCIAL || '').trim();
+    if (!seen.has(cod + '|' + nom)) {
+      seen.add(cod + '|' + nom);
+      _ncCliCache.push({ cod, nom });
+    }
+  });
+  _ncCliCache.sort((a, b) => a.nom.localeCompare(b.nom, 'pt-BR'));
+  return _ncCliCache;
+}
+
+// Chamada quando DADOS_REAIS.clientes é carregado (reseta cache)
+function _ncPopularClientes() { _ncCliCache = null; }
+
+function _ncAutoComplete(input) {
+  const val = (input.value || '').trim().toLowerCase();
+  const drop = document.getElementById('nc-ac-drop');
+  if (!drop) return;
+  if (!val) { drop.style.display = 'none'; return; }
+
+  const lista = _ncListaClientes();
+  const matches = lista.filter(x =>
+    x.nom.toLowerCase().includes(val) || x.cod.toLowerCase().includes(val)
+  ).slice(0, 20);
+
+  if (!matches.length) { drop.style.display = 'none'; return; }
+
+  // Destaca o trecho digitado
+  const _hl = (str) => {
+    const idx = str.toLowerCase().indexOf(val);
+    if (idx < 0) return str;
+    return str.slice(0, idx) + '<b style="color:var(--primary)">' + str.slice(idx, idx + val.length) + '</b>' + str.slice(idx + val.length);
+  };
+
+  drop.innerHTML = matches.map(x => `
+    <div onmousedown="_ncSelecionarCliente('${x.nom.replace(/'/g,"\\'")}','${x.cod}')"
+         style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px"
+         onmouseover="this.style.background='var(--primary-dim)'" onmouseout="this.style.background=''">
+      <span style="font-size:13px">${_hl(x.nom)}</span>
+      <span style="font-size:11px;color:var(--text-dim);white-space:nowrap">${_hl(x.cod)}</span>
+    </div>`).join('');
+  drop.style.display = 'block';
+}
+
+function _ncSelecionarCliente(nom, cod) {
+  document.getElementById('nc-cliente').value      = nom;
+  document.getElementById('nc-cod-cliente').value  = cod;
+  const drop = document.getElementById('nc-ac-drop');
+  if (drop) drop.style.display = 'none';
+  _ncKpisCliente(nom);
+}
+
+function _ncPopularMotivos() {
+  const todos = [..._NC_MOTIVOS_DEFAULT, ..._NC_MOTIVOS_CUSTOM];
+  ['nc-motivo', 'nc-f-motivo'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const primeiro = sel.options[0].outerHTML;
+    sel.innerHTML = primeiro + todos.map(m => `<option value="${m}">${m}</option>`).join('');
+  });
+}
+
+function _ncFiltrado() {
+  const qCli  = (document.getElementById('nc-f-cliente')?.value || '').toLowerCase();
+  const qArea = (document.getElementById('nc-f-area')?.value || '');
+  const qMot  = (document.getElementById('nc-f-motivo')?.value || '');
+  const qDe   = (document.getElementById('nc-f-de')?.value || '');
+  const qAte  = (document.getElementById('nc-f-ate')?.value || '');
+  return _NC_DATA.filter(r => {
+    if (qCli  && !(r.cliente||'').toLowerCase().includes(qCli) && !(r.cod_cliente||'').includes(qCli)) return false;
+    if (qArea && r.area !== qArea) return false;
+    if (qMot  && r.motivo !== qMot) return false;
+    if (qDe   && (r.data_ocorrencia||'') < qDe) return false;
+    if (qAte  && (r.data_ocorrencia||'') > qAte) return false;
+    return true;
+  });
+}
+
+function _ncRenderTabela() {
+  const filt = _ncFiltrado();
+  // KPI cards de resumo
+  const kpiEl = document.getElementById('nc-kpis-resumo');
+  if (kpiEl) {
+    const porArea = {}, porCliente = {};
+    filt.forEach(r => {
+      porArea[r.area||'—'] = (porArea[r.area||'—']||0) + 1;
+      const cli = r.cliente || r.cod_cliente || '—';
+      porCliente[cli] = (porCliente[cli]||0) + 1;
+    });
+    const topArea    = Object.entries(porArea).sort((a,b)=>b[1]-a[1])[0];
+    const topCliente = Object.entries(porCliente).sort((a,b)=>b[1]-a[1])[0];
+    kpiEl.innerHTML =
+      kpiCard('blue',  'Total de Ocorrências', fmtN(filt.length), 'registros no período filtrado', '📋') +
+      kpiCard('red',   'Última Ocorrência', filt.length ? filt.slice().sort((a,b)=>(b.data_ocorrencia||'').localeCompare(a.data_ocorrencia||''))[0].data_ocorrencia : '—', 'data mais recente', '🗓') +
+      kpiCard('orange','Área com Mais NCs', topArea ? topArea[0] : '—', topArea ? `${topArea[1]} ocorrência(s)` : '', '🏷') +
+      kpiCard('purple','Clientes Afetados', fmtN(new Set(filt.map(r=>r.cod_cliente||r.cliente)).size), 'clientes únicos', '🏢') +
+      kpiCard('green', 'Maior Nº de Ocorrências', topCliente ? topCliente[0].substring(0,22) : '—', topCliente ? `${topCliente[1]} ocorrência(s)` : 'nenhum registro', '🏆');
+  }
+  // Tabela
+  const tbody = document.getElementById('nc-tbody');
+  if (!tbody) return;
+  const start = _ncPage * PAGE_SZ;
+  const rows  = filt.slice(start, start + PAGE_SZ);
+  if (!filt.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-dim)">Nenhuma não conformidade registrada.</td></tr>`;
+    document.getElementById('nc-info').textContent = '';
+    document.getElementById('nc-pager').innerHTML = '';
+    return;
+  }
+  const _area = a => ({ Faturamento:'<span style="color:#4e6ef2;font-weight:600">Faturamento</span>', Comercial:'<span style="color:#10b981;font-weight:600">Comercial</span>', Cobrança:'<span style="color:#f59e0b;font-weight:600">Cobrança</span>' }[a] || `<span style="color:var(--text-dim)">${a||'—'}</span>`);
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis" title="${r.cliente||''}">${(r.cliente||'—').substring(0,25)}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--text-dim)">${r.cod_cliente||'—'}</td>
+      <td>${_area(r.area)}</td>
+      <td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${r.motivo||''}">${r.motivo||'—'}</td>
+      <td style="white-space:nowrap">${r.data_ocorrencia||'—'}</td>
+      <td style="font-size:11px;color:var(--text-dim)">${r.usuario||'—'}</td>
+      <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${r.descricao||''}">${(r.descricao||'—').substring(0,50)}</td>
+      <td style="font-size:11px;color:var(--text-dim);white-space:nowrap">${r.data_cadastro ? new Date(r.data_cadastro).toLocaleDateString('pt-BR') : '—'}</td>
+      <td><button onclick="_excluirNC('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:14px" title="Excluir">🗑</button></td>
+    </tr>`).join('');
+  document.getElementById('nc-info').textContent = `(${filt.length} registro${filt.length!==1?'s':''})`;
+  renderPager('nc', filt.length, _ncPage, v => { _ncPage = v; _ncRenderTabela(); });
+}
+
+function _ncKpisCliente(nomeCliente) {
+  const el = document.getElementById('nc-kpis-cliente');
+  const grid = document.getElementById('nc-kpis-cli-grid');
+  const titulo = document.getElementById('nc-kpis-cli-titulo');
+  if (!el || !grid || !nomeCliente) { if(el) el.style.display='none'; return; }
+  const regs = _NC_DATA.filter(r => r.cliente === nomeCliente);
+  if (!regs.length) { el.style.display='none'; return; }
+  const porArea = {}, porMotivo = {};
+  regs.forEach(r => {
+    porArea[r.area||'—']   = (porArea[r.area||'—']||0) + 1;
+    porMotivo[r.motivo||'—'] = (porMotivo[r.motivo||'—']||0) + 1;
+  });
+  const topArea   = Object.entries(porArea).sort((a,b)=>b[1]-a[1])[0];
+  const topMotivo = Object.entries(porMotivo).sort((a,b)=>b[1]-a[1])[0];
+  const datas = regs.map(r=>r.data_ocorrencia||'').filter(Boolean).sort();
+  const ultima = datas[datas.length-1] || '—';
+  const primei = datas[0] || '—';
+  // Qtd últimos 90 dias
+  const limite90 = new Date(); limite90.setDate(limite90.getDate()-90);
+  const lim90str = limite90.toISOString().slice(0,10);
+  const recentes = regs.filter(r=>(r.data_ocorrencia||'') >= lim90str).length;
+
+  titulo.textContent = `KPIs de Não Conformidade — ${nomeCliente}`;
+  grid.innerHTML =
+    kpiCard('blue',   'Total de Ocorrências', fmtN(regs.length), 'histórico completo', '📋') +
+    kpiCard('red',    'Últimos 90 dias',       fmtN(recentes),    'ocorrências recentes', '📅') +
+    kpiCard('orange', 'Área Mais Recorrente',  topArea?topArea[0]:'—', topArea?`${topArea[1]} vez(es)`:'', '🏷') +
+    kpiCard('purple', 'Motivo Mais Frequente', topMotivo?topMotivo[0].substring(0,30):'—', topMotivo?`${topMotivo[1]} vez(es)`:'', '🔁') +
+    kpiCard('green',  'Última Ocorrência',     ultima, 'data mais recente', '🗓') +
+    kpiCard('blue',   'Primeira Ocorrência',   primei, 'início do histórico', '📌');
+  el.style.display = '';
+}
+
+async function salvarNC() {
+  const cliente       = (document.getElementById('nc-cliente').value||'').trim();
+  const cod_cliente   = (document.getElementById('nc-cod-cliente').value||'').trim();
+  const area          = (document.getElementById('nc-area').value||'').trim();
+  const motivo        = (document.getElementById('nc-motivo').value||'').trim();
+  const data_ocorrencia = (document.getElementById('nc-data-ocorrencia').value||'').trim();
+  const usuario       = (document.getElementById('nc-usuario').value||'').trim();
+  const descricao     = (document.getElementById('nc-descricao').value||'').trim();
+  const msg = document.getElementById('nc-form-msg');
+
+  if (!cliente || !area || !motivo || !data_ocorrencia || !usuario) {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = '⚠️ Preencha todos os campos obrigatórios (*).';
+    return;
+  }
+  const payload = { cliente, cod_cliente, area, motivo, data_ocorrencia, usuario, descricao };
+  try {
+    const r = await fetch('http://localhost:3002/api/nao-conformidades', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error('Falha no servidor');
+    _NC_DATA.push({ ...payload, id: d.id, data_cadastro: new Date().toISOString() });
+    localStorage.setItem('nc_data_local', JSON.stringify(_NC_DATA));
+    msg.style.color = 'var(--success)';
+    msg.textContent = '✅ Registrado com sucesso!';
+    // Limpa form
+    ['nc-cliente','nc-cod-cliente','nc-area','nc-motivo','nc-data-ocorrencia','nc-descricao'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    _ncRenderTabela();
+    setTimeout(() => { msg.textContent=''; }, 3000);
+  } catch {
+    // Fallback local
+    const novo = { ...payload, id:'nc_'+Date.now(), data_cadastro: new Date().toISOString() };
+    _NC_DATA.push(novo);
+    localStorage.setItem('nc_data_local', JSON.stringify(_NC_DATA));
+    msg.style.color = 'var(--warning)';
+    msg.textContent = '⚠️ Salvo localmente (servidor indisponível).';
+    _ncRenderTabela();
+    setTimeout(() => { msg.textContent=''; }, 4000);
+  }
+}
+
+async function _excluirNC(id) {
+  // Mostra modal de confirmação + PIN admin
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:28px 32px;min-width:320px;max-width:420px;box-shadow:0 16px 48px rgba(0,0,0,.5)">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--danger)">🗑 Excluir Ocorrência</div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:18px">Somente o Administrador pode excluir registros. Informe o PIN para confirmar.</div>
+      <input id="_nc-del-pin" type="password" class="filter-input" placeholder="PIN Admin" style="width:100%;box-sizing:border-box;margin-bottom:14px">
+      <div id="_nc-del-msg" style="font-size:12px;color:var(--danger);min-height:16px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button id="_nc-del-cancel" style="background:none;border:1px solid var(--border);border-radius:6px;padding:7px 18px;cursor:pointer;color:var(--text-dim);font-size:13px">Cancelar</button>
+        <button id="_nc-del-ok" style="background:var(--danger);color:#fff;border:none;border-radius:6px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600">Excluir</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const pinInput = overlay.querySelector('#_nc-del-pin');
+  const msgEl    = overlay.querySelector('#_nc-del-msg');
+  pinInput.focus();
+
+  const fechar = () => document.body.removeChild(overlay);
+
+  overlay.querySelector('#_nc-del-cancel').onclick = fechar;
+  overlay.querySelector('#_nc-del-ok').onclick = async () => {
+    const pin = pinInput.value.trim();
+    if (!pin) { msgEl.textContent = 'Informe o PIN.'; return; }
+    try {
+      const r = await fetch(`http://localhost:3002/api/nao-conformidades/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      });
+      const d = await r.json();
+      if (!d.ok) { msgEl.textContent = '❌ ' + d.message; pinInput.value = ''; pinInput.focus(); return; }
+    } catch {
+      // servidor indisponível — valida PIN localmente para não bloquear offline
+      if (pin !== '1234') { msgEl.textContent = '❌ PIN incorreto.'; pinInput.value = ''; pinInput.focus(); return; }
+    }
+    fechar();
+    _NC_DATA = _NC_DATA.filter(r => r.id !== id);
+    localStorage.setItem('nc_data_local', JSON.stringify(_NC_DATA));
+    _ncRenderTabela();
+  };
+
+  // confirmar com Enter
+  pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') overlay.querySelector('#_nc-del-ok').click(); });
+}
+
+async function adicionarMotivoNC() {
+  const pin    = (document.getElementById('nc-admin-pin').value||'').trim();
+  const motivo = (document.getElementById('nc-novo-motivo').value||'').trim();
+  const msg    = document.getElementById('nc-admin-msg');
+  if (!motivo) { msg.style.color='var(--danger)'; msg.textContent='Informe o motivo.'; return; }
+  try {
+    const r = await fetch('http://localhost:3002/api/motivos-nc', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pin,motivo})
+    });
+    const d = await r.json();
+    if (!d.ok) { msg.style.color='var(--danger)'; msg.textContent='❌ '+d.message; return; }
+    _NC_MOTIVOS_CUSTOM = d.motivos.filter(m => !_NC_MOTIVOS_DEFAULT.includes(m));
+    _ncPopularMotivos();
+    document.getElementById('nc-novo-motivo').value = '';
+    document.getElementById('nc-admin-pin').value   = '';
+    msg.style.color='var(--success)'; msg.textContent='✅ Motivo adicionado!';
+    setTimeout(() => { msg.textContent=''; }, 3000);
+  } catch {
+    msg.style.color='var(--danger)'; msg.textContent='Erro ao conectar ao servidor.';
+  }
+}
+
+function _ncLimparFiltros() {
+  ['nc-f-cliente','nc-f-area','nc-f-motivo','nc-f-de','nc-f-ate'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('nc-kpis-cliente').style.display='none';
+  _ncPage=0; _ncRenderTabela();
+}
+
+function _exportarNC() {
+  exportarExcel(_ncFiltrado().map(r=>({
+    Cliente:r.cliente, Codigo:r.cod_cliente, Area:r.area, Motivo:r.motivo,
+    'Data Ocorrencia':r.data_ocorrencia, Usuario:r.usuario, Descricao:r.descricao,
+    'Cadastrado em':r.data_cadastro?new Date(r.data_cadastro).toLocaleString('pt-BR'):''
+  })), 'NaoConformidade');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CALENDÁRIO DE FATURAMENTO
+// ══════════════════════════════════════════════════════════════════════════════
+let _calMes       = new Date().getMonth();
+let _calAno       = new Date().getFullYear();
+let _calFiltro    = 'ambos';
+let _calFiltroFat = '';   // faturista selecionado no filtro
+const _calDataMap = {}; // chave → { dateLabel, fat, clientes } — evita JSON em atributos HTML
+
+function buildCalendario() { _renderCalendario(); }
+
+function _calNavMes(delta) {
+  _calMes += delta;
+  if (_calMes > 11) { _calMes = 0; _calAno++; }
+  else if (_calMes < 0) { _calMes = 11; _calAno--; }
+  _calPopupFechar();
+  _renderCalendario();
+}
+function _calHoje() { _calMes = new Date().getMonth(); _calAno = new Date().getFullYear(); _calPopupFechar(); _renderCalendario(); }
+
+function _calSetFiltro(f) {
+  _calFiltro    = f;
+  _calFiltroFat = ''; // reseta faturista ao trocar produto
+  ['ambos','aereo','terrestre'].forEach(k => {
+    const b = document.getElementById('cal-btn-' + k);
+    if (!b) return;
+    b.style.background = k === f ? 'var(--primary)' : 'none';
+    b.style.color      = k === f ? '#fff'           : 'var(--text-dim)';
+    b.style.fontWeight = k === f ? '600'            : '400';
+  });
+  _calPopupFechar();
+  _renderCalendario();
+}
+
+function _calSetFiltroFat(val) {
+  _calFiltroFat = val;
+  _calPopupFechar();
+  _renderCalendario();
+}
+
+function _calPopularFiltroFat() {
+  const sel = document.getElementById('cal-filtro-fat');
+  if (!sel) return;
+
+  // Coleta todos os faturistas dos dados actuais (sem filtro de faturista)
+  const fats = new Set();
+  const _coletarFat = rows => {
+    if (!rows || !rows.length) return;
+    rows.forEach(r => {
+      const f = (r.FATURISTA || r['RESPONSAVEL DOIS '] || r['RESPONSAVEL DOIS'] || '').toString().trim();
+      if (f) fats.add(f);
+    });
+  };
+  if (_calFiltro !== 'terrestre') _coletarFat(aereoData?.length ? aereoData : (DADOS_REAIS.aereo || []));
+  if (_calFiltro !== 'aereo')    _coletarFat(terrData?.length  ? terrData  : (DADOS_REAIS.terrestre || []));
+
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>' +
+    [...fats].sort().map(f => `<option value="${f}"${f===atual?' selected':''}>${f}</option>`).join('');
+}
+
+// Adiciona N dias úteis (ignora sáb e dom)
+function _addDiasUteis(date, n) {
+  const d = new Date(date); d.setHours(12, 0, 0, 0);
+  let c = 0;
+  while (c < n) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) c++; }
+  return d;
+}
+
+// Parseia DD/MM/YYYY, YYYY-MM-DD ou Date
+function _calParseDate(val) {
+  if (!val) return null;
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  const s = String(val).trim();
+  const m1 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m1) return new Date(+m1[3], +m1[2]-1, +m1[1], 12);
+  const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m2) return new Date(+m2[1], +m2[2]-1, +m2[3], 12);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function _calPeriodoFimEspecial(cod) {
+  const dc = _REGRAS_PRAZO_ESPECIAL[String(cod).trim()];
+  if (!dc) return null;
+  return new Date(_calAno, _calMes, dc - 1, 12);
+}
+
+// Retorna { 'YYYY-MM-DD': { 'faturista': [{cliente, cod, produto, fimPeriodo}] } }
+function _getEventosCalendario() {
+  const eventos = {};
+  const seen    = new Set();
+
+  const _add = (prazoDate, fat, info) => {
+    if (!prazoDate || isNaN(prazoDate.getTime())) return;
+    const dateKey = prazoDate.toISOString().slice(0, 10);
+    const uid     = dateKey + '|' + fat + '|' + info.produto + '|' + info.cod + '|' + info.cliente;
+    if (seen.has(uid)) return;
+    seen.add(uid);
+    if (!eventos[dateKey]) eventos[dateKey] = {};
+    if (!eventos[dateKey][fat]) eventos[dateKey][fat] = [];
+    eventos[dateKey][fat].push(info);
+  };
+
+  const _proc = (rows, produto) => {
+    if (!rows || !rows.length) return;
+    const cols   = Object.keys(rows[0] || {});
+    const colCod = cols.find(c => /^COD_CLIENTE_ATUAL$|^CODIGO$/i.test(c.trim()));
+    const colFim = cols.find(c => /DATA.?FIM.?PERIODO|FIM.?PERIODO/i.test(c.trim()));
+    const dedup  = new Set();
+
+    rows.forEach(r => {
+      const cod  = String(r[colCod] || '').trim();
+      const nome = (r.CLIENTE || r.RAZAO_SOCIAL || '').toString().trim();
+      const fat  = (r.FATURISTA || r['RESPONSAVEL DOIS '] || r['RESPONSAVEL DOIS'] || 'SEM FATURISTA').toString().trim() || 'SEM FATURISTA';
+
+      // Aplica filtro de faturista
+      if (_calFiltroFat && fat !== _calFiltroFat) return;
+
+      let fimData = _calPeriodoFimEspecial(cod);
+      if (!fimData && colFim && r[colFim]) fimData = _calParseDate(r[colFim]);
+      if (!fimData) return;
+
+      const dk = `${cod}||${fimData.toISOString().slice(0,10)}`;
+      if (dedup.has(dk)) return;
+      dedup.add(dk);
+
+      _add(_addDiasUteis(fimData, 3), fat, {
+        cliente: nome || cod || '—', cod, produto,
+        fimPeriodo: fimData.toLocaleDateString('pt-BR')
+      });
+    });
+  };
+
+  if (_calFiltro !== 'terrestre') _proc(aereoData?.length ? aereoData : (DADOS_REAIS.aereo || []), 'aereo');
+  if (_calFiltro !== 'aereo')    _proc(terrData?.length  ? terrData  : (DADOS_REAIS.terrestre || []), 'terrestre');
+
+  return eventos;
+}
+
+// ── POPUP de clientes por faturista ──────────────────────────────────────────
+let _calPopupTimer = null;
+
+function _calPopupCancelarTimer() {
+  if (_calPopupTimer) { clearTimeout(_calPopupTimer); _calPopupTimer = null; }
+}
+
+function _calPopupAbrir(btn, dateLabel, fat, clientes) {
+  _calPopupCancelarTimer();
+
+  let pop = document.getElementById('cal-popup');
+  if (!pop) {
+    pop = document.createElement('div');
+    pop.id = 'cal-popup';
+    pop.style.cssText = 'position:fixed;z-index:9999;min-width:300px;max-width:400px;border-radius:12px;' +
+      'background:var(--surface2);border:1px solid var(--border);box-shadow:0 16px 48px rgba(0,0,0,.55);' +
+      'overflow:hidden;transition:opacity .12s';
+    document.body.appendChild(pop);
+    document.addEventListener('mousedown', e => { if (!pop.contains(e.target)) _calPopupFechar(); });
+  }
+
+  // Hover no popup → mantém aberto
+  pop.onmouseenter = _calPopupCancelarTimer;
+  pop.onmouseleave = () => { _calPopupTimer = setTimeout(_calPopupFechar, 250); };
+
+  const rows = clientes.sort((a,b) => a.cliente.localeCompare(b.cliente)).map(c => {
+    const isA = c.produto === 'aereo';
+    const cor = isA ? '#4e6ef2' : '#a78bfa';
+    const ico = isA ? '✈' : '🚌';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);
+                         transition:background .1s" onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background=''">
+      <span style="font-size:15px">${ico}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.cliente}</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:1px">Fim período: ${c.fimPeriodo}</div>
+      </div>
+      <span style="font-size:10px;background:${cor}22;color:${cor};padding:2px 8px;border-radius:10px;font-weight:600;flex-shrink:0">${isA?'Aéreo':'Terrestre'}</span>
+    </div>`;
+  }).join('');
+
+  pop.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+                background:linear-gradient(135deg,var(--primary)22,var(--surface2));border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:3px">📅 ${dateLabel}</div>
+        <div style="font-weight:700;font-size:14px">👤 ${fat}</div>
+      </div>
+      <button onclick="_calPopupFechar()" style="background:none;border:none;cursor:pointer;color:var(--text-dim);
+              font-size:18px;line-height:1;padding:4px 8px;border-radius:6px"
+              onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background=''">✕</button>
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);padding:6px 16px;border-bottom:1px solid var(--border)">
+      ${clientes.length} cliente${clientes.length!==1?'s':''} com prazo nesta data
+    </div>
+    <div style="max-height:340px;overflow-y:auto">${rows}</div>`;
+
+  pop.style.display = 'block';
+
+  // Posicionamento inteligente próximo ao elemento
+  const r   = btn.getBoundingClientRect();
+  const pw  = 400, ph = 420;
+  let left  = r.left;
+  let top   = r.bottom + 6;
+  if (left + pw > window.innerWidth  - 12) left = window.innerWidth  - pw - 12;
+  if (left < 8) left = 8;
+  if (top  + ph > window.innerHeight - 12) top  = r.top - ph - 6;
+  if (top  < 8) top = 8;
+  pop.style.left = left + 'px';
+  pop.style.top  = top  + 'px';
+}
+
+function _calPopupFechar() {
+  _calPopupCancelarTimer();
+  const pop = document.getElementById('cal-popup');
+  if (pop) pop.style.display = 'none';
+}
+
+function _calPopupAbrirKey(btn, key) {
+  const d = _calDataMap[key];
+  if (d) _calPopupAbrir(btn, d.dateLabel, d.fat, d.clientes);
+}
+
+function _renderCalendario() {
+  const container = document.getElementById('cal-container');
+  const tituloEl  = document.getElementById('cal-titulo');
+  const statsEl   = document.getElementById('cal-stats');
+  if (!container) return;
+
+  const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DIAS  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  if (tituloEl) tituloEl.textContent = `${MESES[_calMes]} ${_calAno}`;
+
+  // Limpa mapa de dados antes de recriar os botões
+  Object.keys(_calDataMap).forEach(k => delete _calDataMap[k]);
+
+  // Popula select de faturista antes de filtrar
+  _calPopularFiltroFat();
+
+  const eventos   = _getEventosCalendario();
+  const hojeStr   = new Date().toISOString().slice(0, 10);
+  const primeiro  = new Date(_calAno, _calMes, 1);
+  const totalDias = new Date(_calAno, _calMes + 1, 0).getDate();
+  const dow0      = primeiro.getDay();
+  const offsetSeg = dow0 === 0 ? 6 : dow0 - 1;
+
+  const thead = DIAS.map((d, i) =>
+    `<th style="padding:12px 8px;font-size:12px;font-weight:700;letter-spacing:.4px;
+                color:${i>=5?'#f87171':'var(--text)'};text-align:center;
+                background:var(--surface2);border-bottom:2px solid var(--border);
+                border-right:1px solid var(--border)">${d}</th>`
+  ).join('');
+
+  let rows = '', col = 0, rowOpen = false;
+  const totalCells = Math.ceil((offsetSeg + totalDias) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    if (col === 0) { rows += '<tr>'; rowOpen = true; }
+
+    const dayNum  = i - offsetSeg + 1;
+    const isFds   = col >= 5;
+
+    if (dayNum < 1 || dayNum > totalDias) {
+      rows += `<td style="min-height:110px;background:var(--surface);opacity:.2;border:1px solid var(--border)"></td>`;
+    } else {
+      const dateStr  = `${_calAno}-${String(_calMes+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+      const isHoje   = dateStr === hojeStr;
+      const fatMap   = eventos[dateStr] || {};   // { faturista → [clientes] }
+      const fatLista = Object.keys(fatMap).sort();
+      const totalCli = fatLista.reduce((s, f) => s + fatMap[f].length, 0);
+
+      // Chips por faturista (um por responsável)
+      const MESES_ABR = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+      const dateLabel = `${dayNum} de ${MESES_ABR[_calMes]} de ${_calAno}`;
+
+      const chips = fatLista.map(fat => {
+        const clis  = fatMap[fat];
+        const nA    = clis.filter(c=>c.produto==='aereo').length;
+        const nT    = clis.filter(c=>c.produto==='terrestre').length;
+        const cor   = nA && nT ? '#10b981' : nA ? '#4e6ef2' : '#a78bfa';
+        const bg    = nA && nT ? 'rgba(16,185,129,.12)' : nA ? 'rgba(78,110,242,.12)' : 'rgba(167,139,250,.12)';
+        const icos  = (nA ? '✈' : '') + (nT ? '🚌' : '');
+        // Guarda dados no mapa — evita aspas duplas do JSON quebrando atributos HTML
+        const mapKey = dateStr + '_' + fat.replace(/\W/g,'_').slice(0,20);
+        _calDataMap[mapKey] = { dateLabel, fat, clientes: clis };
+        return `<button
+          onclick="_calPopupAbrirKey(this,'${mapKey}')"
+          onmouseenter="_calPopupCancelarTimer();_calPopupAbrirKey(this,'${mapKey}')"
+          onmouseleave="_calPopupTimer=setTimeout(_calPopupFechar,250)"
+          style="display:flex;align-items:center;gap:5px;width:100%;margin:2px 0;padding:5px 8px;
+                 border-radius:6px;border:1px solid ${cor}44;background:${bg};cursor:pointer;
+                 text-align:left;transition:filter .15s">
+          <span style="font-size:10px">${icos}</span>
+          <span style="font-size:11px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;
+                       white-space:nowrap;color:var(--text)">${fat.split(' ')[0]}</span>
+          <span style="font-size:10px;background:${cor};color:#fff;border-radius:10px;
+                       padding:1px 6px;font-weight:700;flex-shrink:0">${clis.length}</span>
+        </button>`;
+      }).join('');
+
+      const numEl = isHoje
+        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+                        border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:13px">${dayNum}</span>`
+        : `<span style="font-size:13px;font-weight:${totalCli?'700':'400'};
+                        color:${isFds?'#f87171':totalCli?'var(--text)':'var(--text-dim)'}">${dayNum}</span>`;
+
+      rows += `<td style="vertical-align:top;padding:7px;min-height:110px;
+                           border:1px solid var(--border);
+                           background:${isHoje?'rgba(78,110,242,.07)':isFds?'rgba(248,113,113,.04)':'var(--surface)'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          ${numEl}
+          ${totalCli ? `<span style="font-size:9px;color:var(--text-dim)">${totalCli} cli.</span>` : ''}
+        </div>
+        ${chips}
+      </td>`;
+    }
+
+    col++;
+    if (col === 7) { rows += '</tr>'; rowOpen = false; col = 0; }
+  }
+  if (rowOpen) rows += '</tr>';
+
+  // Stats
+  const allClis = Object.values(eventos).flatMap(d => Object.values(d).flat());
+  const nFat    = new Set(Object.values(eventos).flatMap(d => Object.keys(d))).size;
+  const nA      = allClis.filter(c=>c.produto==='aereo').length;
+  const nT      = allClis.filter(c=>c.produto==='terrestre').length;
+  if (statsEl) {
+    statsEl.innerHTML = allClis.length
+      ? `<span style="font-size:12px;color:var(--text-dim)">${allClis.length} entrega${allClis.length!==1?'s':''} ·
+         ${nFat} faturista${nFat!==1?'s':''} — <span style="color:#4e6ef2;font-weight:600">✈ ${nA} aéreo</span> ·
+         <span style="color:#a78bfa;font-weight:600">🚌 ${nT} terrestre</span></span>`
+      : `<span style="font-size:12px;color:var(--text-dim)">Nenhuma entrega calculada — carregue Aéreo ou Terrestre.</span>`;
+  }
+
+  container.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+      <thead><tr>${thead}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+}
+
+
 const PAGE_BUILDERS = {
   aereo: buildAereo,
   terrestre: buildTerr,
   faturadas: buildFaturadas,
+  calendario: buildCalendario,
   kpis: buildKpis,
   clientes: buildClientes,
+  naoconf: buildNaoConf,
   responsaveis: buildResp,
   faturistas: buildFaturistas,
   sistemas: buildSistemas,
@@ -2595,7 +4820,7 @@ async function atualizarTudo(btn) {
 
   // 2. Carrega todas as abas com query salva, em paralelo (forçando re-fetch do ERP)
   setBtn('📥 Carregando dados...', true);
-  const tipos = ['aereo','terrestre','faturadas'].filter(t => localStorage.getItem('benner_query_'+t));
+  const tipos = ['aereo','terrestre','faturadas','clientes'].filter(t => localStorage.getItem('benner_query_'+t));
   if(tipos.length === 0) {
     setBtn('⚠️ Nenhuma query salva', false);
     resetBtn();
@@ -2616,6 +4841,314 @@ async function atualizarTudo(btn) {
 }
 
 window.addEventListener('DOMContentLoaded', init);
+
+// ════════════════════════════════════════════════════════════════
+// ── AUTH ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+const _PERM_LABELS = {
+  "aereo": "✈ Aéreo",
+  "terrestre": "🚌 Terrestre",
+  "faturadas": "✅ Faturadas",
+  "calendario": "📅 Calendário",
+  "kpis": "📈 KPIs",
+  "clientes": "🏢 Clientes",
+  "naoconf": "⚠️ Não Conformidade",
+  "responsaveis": "👤 Responsáveis",
+  "faturistas": "🧾 Faturistas",
+  "sistemas": "💻 Sist. Reserva",
+  "divergentes": "⚠️ Divergentes",
+  "suspensas": "🔒 Suspensas",
+  "admin": "⚙️ Administração"
+};
+const _ALL_PERMS   = ["aereo","terrestre","faturadas","calendario","kpis","clientes","naoconf","responsaveis","faturistas","sistemas","divergentes","suspensas","admin"];
+let _authSessao = null; // { token, nome, perfil, permissoes }
+
+async function _authInit() {
+  const token = localStorage.getItem('voetur_token');
+  if (token) {
+    try {
+      const r = await fetch('http://localhost:3002/api/auth/verificar', { headers: { 'x-auth-token': token } });
+      const d = await r.json();
+      if (d.ok) { _authSessao = { token, ...d }; _authAplicar(); return; }
+    } catch {}
+  }
+  localStorage.removeItem('voetur_token');
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+
+async function _authLogin() {
+  const login = (document.getElementById('auth-login').value||'').trim();
+  const senha = (document.getElementById('auth-senha').value||'');
+  const msg   = document.getElementById('auth-msg');
+  const btn   = document.getElementById('auth-btn');
+  if (!login || !senha) { msg.textContent = 'Preencha login e senha.'; return; }
+  btn.disabled = true; btn.textContent = 'Entrando...'; msg.textContent = '';
+  try {
+    const r = await fetch('http://localhost:3002/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, senha })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      localStorage.setItem('voetur_token', d.token);
+      _authSessao = { token: d.token, nome: d.nome, perfil: d.perfil, permissoes: d.permissoes };
+      _authAplicar();
+      document.getElementById('auth-overlay').classList.add('hidden');
+    } else {
+      msg.textContent = d.message || 'Erro ao entrar.';
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  } catch {
+    msg.textContent = 'Servidor offline. Verifique se o servidor local está rodando.';
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+async function _authLogout() {
+  if (_authSessao?.token) {
+    try { await fetch('http://localhost:3002/api/auth/logout', { method: 'POST', headers: { 'x-auth-token': _authSessao.token } }); } catch {}
+  }
+  localStorage.removeItem('voetur_token');
+  _authSessao = null;
+  document.getElementById('auth-overlay').classList.remove('hidden');
+  document.getElementById('auth-senha').value = '';
+  document.getElementById('auth-btn').disabled = false;
+  document.getElementById('auth-btn').textContent = 'Entrar';
+  document.getElementById('auth-msg').textContent = '';
+}
+
+function _authAplicar() {
+  if (!_authSessao) return;
+  // Atualizar user-bar
+  const nome = _authSessao.nome || _authSessao.login || '–';
+  const perfNome = _authSessao.perfil || '–';
+  document.getElementById('auth-nome-display').textContent = nome;
+  document.getElementById('auth-perfil-display').textContent = perfNome.charAt(0).toUpperCase() + perfNome.slice(1);
+  document.getElementById('auth-avatar').textContent = nome.charAt(0).toUpperCase();
+  // Aplicar permissões nos nav-items
+  const perms = new Set(_authSessao.permissoes || []);
+  document.querySelectorAll('.nav-item[data-perm]').forEach(el => {
+    const p = el.getAttribute('data-perm');
+    el.style.display = perms.has(p) ? '' : 'none';
+  });
+  // Se a página atual não está nas permissões, ir para a primeira permitida
+  const currentPage = document.querySelector('.page:not([style*="none"])');
+  if (currentPage) {
+    const pid = currentPage.id.replace('page-','');
+    if (!perms.has(pid)) {
+      const primeira = [...perms].find(p => p !== 'admin') || [...perms][0];
+      if (primeira) {
+        const navEl = document.querySelector(`.nav-item[data-perm="${primeira}"]`);
+        if (navEl) goPage(primeira, navEl);
+      }
+    }
+  }
+}
+
+// ── GESTÃO DE PERFIS ─────────────────────────────────────────────
+let _perfisCache = {};
+
+async function _admCarregarPerfis() {
+  try {
+    const r = await fetch('http://localhost:3002/api/perfis');
+    _perfisCache = await r.json();
+  } catch { _perfisCache = {}; }
+  _admRenderPerfis();
+}
+
+function _admRenderPerfis() {
+  const el = document.getElementById('adm-perfis-lista');
+  if (!el) return;
+  el.innerHTML = Object.entries(_perfisCache).map(([id, p]) => {
+    const badgeClass = id === 'gestor' ? 'badge-gestor' : id === 'operacional' ? 'badge-operacional' : 'badge-custom';
+    const isPadrao = id === 'gestor' || id === 'operacional';
+    return `<div class="card" style="padding:14px;background:var(--bg)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span class="badge-perfil ${badgeClass}">${p.nome||id}</span>
+        ${isPadrao ? '<span style="font-size:10px;color:var(--text-dim)">padrão</span>' : ''}
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn" style="font-size:11px;padding:3px 8px" onclick="_admEditarPerfil('${id}')">Editar</button>
+          ${!isPadrao ? `<button class="btn" style="font-size:11px;padding:3px 8px;background:var(--danger,#ef4444)" onclick="_admExcluirPerfil('${id}')">✕</button>` : ''}
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${p.descricao||''}</div>
+      <div style="font-size:11px;color:#60a5fa">${(p.permissoes||[]).map(x => _PERM_LABELS[x]||x).join(' · ')}</div>
+    </div>`;
+  }).join('');
+}
+
+function _admNovoPerfil() { _admAbrirModalPerfil(null); }
+function _admEditarPerfil(id) { _admAbrirModalPerfil(id); }
+
+function _admAbrirModalPerfil(id) {
+  const p = id ? (_perfisCache[id] || {}) : {};
+  const isPadrao = id === 'gestor' || id === 'operacional';
+  const permGrid = _ALL_PERMS.map(perm => `
+    <label class="perm-item">
+      <input type="checkbox" value="${perm}" ${(p.permissoes||[]).includes(perm)?'checked':''}>
+      ${_PERM_LABELS[perm]||perm}
+    </label>`).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'modal-perfil';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;width:440px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="font-weight:700;font-size:15px;margin-bottom:16px">${id ? 'Editar Perfil' : 'Novo Perfil'}</div>
+    ${!id ? `<div style="margin-bottom:12px">
+      <label class="form-label">ID do Perfil (sem espaços)</label>
+      <input id="mp-id" class="form-input" placeholder="ex: supervisor">
+    </div>` : `<input type="hidden" id="mp-id" value="${id}">`}
+    <div style="margin-bottom:12px">
+      <label class="form-label">Nome de Exibição</label>
+      <input id="mp-nome" class="form-input" value="${p.nome||''}">
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">Descrição</label>
+      <input id="mp-desc" class="form-input" value="${p.descricao||''}">
+    </div>
+    <div style="margin-bottom:16px">
+      <label class="form-label">Permissões de Acesso</label>
+      <div class="perm-grid">${permGrid}</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="document.getElementById('modal-perfil').remove()">Cancelar</button>
+      <button class="btn btn-success" onclick="_admSalvarPerfil('${id||''}',${isPadrao})">Salvar</button>
+    </div>
+    <div id="mp-msg" style="font-size:12px;color:#f87171;margin-top:8px"></div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+async function _admSalvarPerfil(id, isPadrao) {
+  const idVal  = (document.getElementById('mp-id').value||'').trim().toLowerCase().replace(/\s+/g,'_');
+  const nome   = (document.getElementById('mp-nome').value||'').trim();
+  const desc   = (document.getElementById('mp-desc').value||'').trim();
+  const perms  = [...document.querySelectorAll('#modal-perfil input[type=checkbox]:checked')].map(c=>c.value);
+  if (!idVal || !nome) { document.getElementById('mp-msg').textContent='ID e nome são obrigatórios.'; return; }
+  const method = (id && !isPadrao) || isPadrao ? 'PUT' : 'POST';
+  const url    = isPadrao || id ? `http://localhost:3002/api/perfis/${idVal}` : 'http://localhost:3002/api/perfis';
+  try {
+    const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:idVal,nome,descricao:desc,permissoes:perms}) });
+    const d = await r.json();
+    if (d.ok) { document.getElementById('modal-perfil').remove(); _admCarregarPerfis(); }
+    else document.getElementById('mp-msg').textContent = d.message||'Erro ao salvar.';
+  } catch { document.getElementById('mp-msg').textContent = 'Erro de comunicação.'; }
+}
+
+async function _admExcluirPerfil(id) {
+  if (!confirm(`Excluir o perfil "${id}"? Usuários com este perfil perderão acesso.`)) return;
+  const r = await fetch(`http://localhost:3002/api/perfis/${id}`, { method:'DELETE' });
+  const d = await r.json();
+  if (d.ok) _admCarregarPerfis();
+  else alert(d.message);
+}
+
+// ── GESTÃO DE USUÁRIOS ───────────────────────────────────────────
+async function _admCarregarUsuarios() {
+  try {
+    const r = await fetch('http://localhost:3002/api/usuarios');
+    const users = await r.json();
+    _admRenderUsuarios(users);
+  } catch { document.getElementById('adm-usuarios-lista').innerHTML='<span style="color:var(--text-dim);font-size:13px">Erro ao carregar usuários.</span>'; }
+}
+
+function _admRenderUsuarios(users) {
+  const el = document.getElementById('adm-usuarios-lista');
+  if (!el) return;
+  const entries = Object.entries(users);
+  if (!entries.length) { el.innerHTML='<span style="color:var(--text-dim);font-size:13px">Nenhum usuário cadastrado.</span>'; return; }
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:1px solid var(--border)">
+      <th style="text-align:left;padding:8px 10px;color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase">Login</th>
+      <th style="text-align:left;padding:8px 10px;color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase">Nome</th>
+      <th style="text-align:left;padding:8px 10px;color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase">Perfil</th>
+      <th style="text-align:left;padding:8px 10px;color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase">Status</th>
+      <th style="padding:8px 10px"></th>
+    </tr></thead>
+    <tbody>${entries.map(([login,u])=>{
+      const bc = u.perfil==='gestor'?'badge-gestor':u.perfil==='operacional'?'badge-operacional':'badge-custom';
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+        <td style="padding:9px 10px;font-family:monospace;font-size:12px">${login}</td>
+        <td style="padding:9px 10px">${u.nome}</td>
+        <td style="padding:9px 10px"><span class="badge-perfil ${bc}">${u.perfil}</span></td>
+        <td style="padding:9px 10px"><span style="font-size:11px;color:${u.ativo?'#4ade80':'#f87171'}">${u.ativo?'Ativo':'Inativo'}</span></td>
+        <td style="padding:9px 10px;text-align:right;display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn" style="font-size:11px;padding:3px 8px" onclick="_admEditarUsuario('${login}',${JSON.stringify(u).replace(/'/g,"\\'")})">Editar</button>
+          <button class="btn" style="font-size:11px;padding:3px 8px;background:var(--danger,#ef4444)" onclick="_admExcluirUsuario('${login}')">✕</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function _admNovoUsuario()  { _admAbrirModalUsuario(null, null); }
+function _admEditarUsuario(login, u) { _admAbrirModalUsuario(login, u); }
+
+function _admAbrirModalUsuario(login, u) {
+  const perfisOpts = Object.entries(_perfisCache).map(([id,p])=>
+    `<option value="${id}" ${(u?.perfil||'operacional')===id?'selected':''}>${p.nome||id}</option>`
+  ).join('');
+  const modal = document.createElement('div');
+  modal.id = 'modal-usuario';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;width:380px;max-width:95vw">
+    <div style="font-weight:700;font-size:15px;margin-bottom:16px">${login?'Editar Usuário':'Novo Usuário'}</div>
+    ${!login ? `<div style="margin-bottom:12px">
+      <label class="form-label">Login</label>
+      <input id="mu-login" class="form-input" placeholder="ex: joao.silva">
+    </div>` : `<div style="margin-bottom:12px"><label class="form-label">Login</label><input class="form-input" value="${login}" disabled></div><input type="hidden" id="mu-login" value="${login}">`}
+    <div style="margin-bottom:12px">
+      <label class="form-label">Nome Completo</label>
+      <input id="mu-nome" class="form-input" value="${u?.nome||''}">
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">Perfil</label>
+      <select id="mu-perfil" class="form-input">${perfisOpts}</select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">${login?'Nova Senha (deixe em branco para manter)':'Senha'}</label>
+      <input id="mu-senha" class="form-input" type="password" placeholder="••••••••">
+    </div>
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="mu-ativo" ${(u?.ativo!==false)?'checked':''} style="accent-color:var(--primary)">
+      <label for="mu-ativo" style="font-size:13px">Usuário ativo</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="document.getElementById('modal-usuario').remove()">Cancelar</button>
+      <button class="btn btn-success" onclick="_admSalvarUsuario('${login||''}')">Salvar</button>
+    </div>
+    <div id="mu-msg" style="font-size:12px;color:#f87171;margin-top:8px"></div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+async function _admSalvarUsuario(loginOriginal) {
+  const login = (document.getElementById('mu-login').value||'').trim().toLowerCase();
+  const nome  = (document.getElementById('mu-nome').value||'').trim();
+  const perf  = document.getElementById('mu-perfil').value;
+  const senha = document.getElementById('mu-senha').value;
+  const ativo = document.getElementById('mu-ativo').checked;
+  if (!login || !nome || !perf) { document.getElementById('mu-msg').textContent='Login, nome e perfil são obrigatórios.'; return; }
+  if (!loginOriginal && !senha) { document.getElementById('mu-msg').textContent='Senha obrigatória para novo usuário.'; return; }
+  const body = { login, nome, perfil: perf, ativo };
+  if (senha) body.senha = senha;
+  const method = loginOriginal ? 'PUT' : 'POST';
+  const url    = loginOriginal ? `http://localhost:3002/api/usuarios/${loginOriginal}` : 'http://localhost:3002/api/usuarios';
+  try {
+    const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const d = await r.json();
+    if (d.ok) { document.getElementById('modal-usuario').remove(); _admCarregarUsuarios(); }
+    else document.getElementById('mu-msg').textContent = d.message||'Erro ao salvar.';
+  } catch { document.getElementById('mu-msg').textContent='Erro de comunicação.'; }
+}
+
+async function _admExcluirUsuario(login) {
+  if (!confirm(`Excluir o usuário "${login}"?`)) return;
+  const r = await fetch(`http://localhost:3002/api/usuarios/${login}`, { method:'DELETE' });
+  const d = await r.json();
+  if (d.ok) _admCarregarUsuarios();
+  else alert(d.message);
+}
 </script>
 </body>
 </html>

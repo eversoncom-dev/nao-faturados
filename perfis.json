@@ -1,0 +1,15 @@
+{
+  "operacional": {
+    "nome": "Operacional",
+    "descricao": "Acesso às abas operacionais, sem administração",
+    "permissoes": [
+      "aereo",
+      "terrestre",
+      "faturadas",
+      "calendario",
+      "kpis",
+      "divergentes",
+      "suspensas"
+    ]
+  }
+}

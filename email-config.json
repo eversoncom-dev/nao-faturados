@@ -1,0 +1,21 @@
+{
+  "smtp": {
+    "host": "smtp.office365.com",
+    "port": "587",
+    "user": "everson.costa@voetur.com.br",
+    "pass": "@Voetur1701"
+  },
+  "cron": {
+    "servidor": "10.141.0.111\\bi",
+    "porta": "1433",
+    "banco": "BennerSistemaCorporativo",
+    "usuario": "usr_bi",
+    "senha": "FZ2gE#3REy0w7&Tj"
+  },
+  "graph": {
+    "tenantId": "fb902eca-dc08-4dec-9e2c-7ce70ee14cf5",
+    "clientId": "7adba9a5-5fb8-436f-9f08-41151d72ed89",
+    "fromEmail": "everson.costa@voetur.com.br",
+    "pfxPass": "Voetur@123"
+  }
+}
